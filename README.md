@@ -2,6 +2,38 @@
 
 A professional, SaaS-grade platform designed to revolutionize company expense management with an intelligent, dynamic approval engine and AI-powered receipt processing.
 
+## 🌐 Live Demo
+Experience the system live here: **[reimbursement.claroz.in](https://reimbursement.claroz.in)**
+
+---
+
+## 🧪 Testing Accounts
+Use these pre-configured accounts to explore the different roles:
+
+### 🛠️ Admin Role
+*   **Email**: `samir.lade6@gmail.com`
+*   **Password**: `samirl123`
+*   **Access**: Full system configuration, user management, and organizational hierarchy search.
+
+### 👥 Manager Role
+*   **Name**: Manager 2
+*   **Email**: `manager2@claroz.com`
+*   **Password**: `User@123`
+*   **Access**: Real-time team spend analytics, "Recent Decisions" activity feed, and approval queue.
+
+### 🧑‍💻 Employee Role
+*   **Name**: Emp 1 (M2) 
+*   **Email**: `emp1.m2@claroz.com`
+*   **Password**: `User@123`
+*   **Access**: AI-powered OCR expense submission, multi-currency processing, and status tracking.
+
+---
+
+## 📸 Quick Test Guide
+1.  **Login as Employee**: Submit a new expense using the **OCR feature** (upload a receipt) or enter data manually.
+2.  **Login as Manager**: Review the pending claim, check the team stats, and approve/reject it.
+3.  **Login as Admin**: Use the **Global Search** to find the employee and view their reporting line in the SVG hierarchy.
+
 ---
 
 ## 🌟 The "Why": Problems We Solve

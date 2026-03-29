@@ -10,6 +10,21 @@ let currentCompany = {};
 let allEmployees = [];
 let workflowData = {};
 
+function getCurrencySymbol(code) {
+    const symbols = {
+        'USD': '$',
+        'CAD': '$',
+        'AUD': '$',
+        'EUR': '€',
+        'GBP': '£',
+        'INR': '₹',
+        'AED': 'د.إ',
+        'JPY': '¥',
+        'CNY': '¥'
+    };
+    return symbols[code] || code;
+}
+
 // ── Sidebar Toggle ────────────────────────────────────────────
 const sidebar = document.getElementById('sidebar');
 const sidebarToggle = document.getElementById('sidebar-toggle');
@@ -391,7 +406,7 @@ document.getElementById('add-user-form').addEventListener('submit', async (e) =>
         fullName: document.getElementById('new-user-name').value,
         email: document.getElementById('new-user-email').value,
         role: document.getElementById('new-user-role').value,
-        password: document.getElementById('new-user-pass').value || 'Welcome@123',
+        password: document.getElementById('new-user-pass').value || 'PlaceholderPassword123!',
         managerId: document.getElementById('new-user-manager').value
     };
 
@@ -599,7 +614,7 @@ async function loadExpenses() {
                 return `<tr>
                     <td>${exp.employeeName || exp.employeeId || '--'}</td>
                     <td>${exp.description || '--'}</td>
-                    <td><strong>${currentCompany.baseCurrency || ''} ${exp.amount || 0}</strong></td>
+                    <td><strong>${getCurrencySymbol(exp.currency || 'USD')} ${exp.amount || 0}</strong></td>
                     <td><span class="status-badge ${sc}">${status.replace('_', ' ')}</span></td>
                     <td>
                         ${isActionable ? `

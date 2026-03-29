@@ -91,7 +91,7 @@ class FirebaseService:
             # Create Firebase Auth user
             user_record = auth.create_user(
                 email=user_data['email'],
-                password=user_data.get('password', 'Welcome@123'),
+                password=user_data.get('password', 'SetYourPassword123!'),
                 display_name=user_data.get('fullName', '')
             )
             uid = user_record.uid
@@ -364,24 +364,22 @@ class FirebaseService:
             company_id = user_data.get('companyId')
             
             if role == 'manager':
-                # Direct reports' pending expenses specifically waiting for Manager approval
+                # NEW: Direct query using managerId field for performance and reliability
                 docs = self.db.collection('expenses') \
                     .where('companyId', '==', company_id) \
+                    .where('managerId', '==', uid) \
                     .where('status', '==', 'pending_manager') \
                     .stream()
                 
-                # Filter locally for managerId match
                 results = []
                 for doc in docs:
                     exp = doc.to_dict()
                     # Skip if manager already acted (safety check)
                     if uid in exp.get('approvals', {}): continue
                     
-                    submitter = self.get_user_data(exp.get('submittedBy'))
-                    if submitter.get('managerId') == uid:
-                        exp['id'] = doc.id
-                        exp = self._serialize_expense_timestamps(exp)
-                        results.append(exp)
+                    exp['id'] = doc.id
+                    exp = self._serialize_expense_timestamps(exp)
+                    results.append(exp)
                 return results
 
             elif role == 'finance':
@@ -398,11 +396,12 @@ class FirebaseService:
                 results = []
                 for doc in docs:
                     exp = doc.to_dict()
+                    
+                    # Direct assignment OR Global Finance assignment
+                    # In hybrid mode, we still look up the manager's assigned finance if not found on expense
                     submitter = self.get_user_data(exp.get('submittedBy'))
                     mgr_id = submitter.get('managerId')
                     mgr_data = self.get_user_data(mgr_id) if mgr_id else {}
-                    
-                    # Direct assignment OR Global Finance assignment
                     mgr_assigned_id = mgr_data.get('assignedFinanceId')
                     
                     if (mgr_assigned_id == uid) or (not mgr_assigned_id and global_finance_uid == uid):
@@ -446,7 +445,8 @@ class FirebaseService:
             for doc in docs:
                 data = doc.to_dict()
                 total_claims += 1
-                amount = float(data.get('amount', 0))
+                # Use convertedAmount for summation to ensure correct totals in base currency
+                amount = float(data.get('convertedAmount', data.get('amount', 0)))
                 status = data.get('status', 'pending_manager')
                 
                 if status == 'approved':
@@ -471,6 +471,12 @@ class FirebaseService:
             expense_data['status'] = 'pending_manager'
             expense_data['approvals'] = {}
             
+            # Bake managerId to ensure direct querying from manager dashboard
+            submitter_uid = expense_data.get('submittedBy')
+            if submitter_uid:
+                submitter_data = self.get_user_data(submitter_uid)
+                expense_data['managerId'] = submitter_data.get('managerId')
+                
             if 'originalCurrency' in expense_data and 'originalAmount' in expense_data:
                 # Dynamic Threshold Evaluation
                 company_id = expense_data.get('companyId')
@@ -488,19 +494,19 @@ class FirebaseService:
                 else:
                     # Get rates relative to the base currency
                     rates = currency_service.get_exchange_rates(base_currency)
-                    # Ex: rates.get('USD') gives us how many USD = 1 BaseCurrency
-                    # So to convert USD to BaseCurrency, we DIVIDE by the rate.
                     rate_to_currency = rates.get(expense_currency)
                     
                     if rate_to_currency and rate_to_currency > 0:
                         converted_amount = original_amount / rate_to_currency
                     else:
-                        # Fallback if service fails or currency unsupported
                         converted_amount = original_amount
                 
+                # Store data correctly: 
+                # 'amount' remains as original input for UI display consistency. 
+                # 'convertedAmount' used for reports/workflows in base currency.
                 expense_data['convertedAmount'] = round(converted_amount, 2)
                 expense_data['convertedCurrency'] = base_currency
-                expense_data['amount'] = round(converted_amount, 2)
+                expense_data['amount'] = original_amount
 
             doc_ref = self.db.collection('expenses').add(expense_data)
             return doc_ref[1].id

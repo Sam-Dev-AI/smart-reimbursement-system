@@ -8,6 +8,21 @@ let pendingExpenses = [];
 let teamMembers = [];
 let teamExpenses = [];
 
+function getCurrencySymbol(code) {
+    const symbols = {
+        'USD': '$',
+        'CAD': '$',
+        'AUD': '$',
+        'EUR': '€',
+        'GBP': '£',
+        'INR': '₹',
+        'AED': 'د.إ',
+        'JPY': '¥',
+        'CNY': '¥'
+    };
+    return symbols[code] || code;
+}
+
 // ── Sidebar Logic ─────────────────────────────────────────────
 function initSidebar() {
     const toggle = document.getElementById('sidebar-toggle');
@@ -187,7 +202,7 @@ function renderRecentDecisions() {
                                     </div>
                                 </div>
                             </td>
-                            <td class="small fw-bold">${exp.currency || '$'} ${exp.amount}</td>
+                            <td class="small fw-bold">${getCurrencySymbol(exp.currency || 'USD')} ${exp.amount}</td>
                             <td class="text-end">
                                 <span class="badge ${badgeClass} border-0" style="font-size: 10px;">${exp.status.replace('_', ' ')}</span>
                             </td>
@@ -216,7 +231,7 @@ function renderMiniList() {
                     ${pendingExpenses.slice(0, 5).map(exp => `
                         <tr>
                             <td><div class="fw-semibold text-truncate" style="max-width: 150px;">${exp.employeeName || 'Unknown'}</div></td>
-                            <td class="fw-bold text-primary">$${exp.amount}</td>
+                            <td class="fw-bold text-primary">${getCurrencySymbol(exp.currency || 'USD')}${exp.amount}</td>
                             <td><span class="badge bg-light text-dark shadow-sm border">${exp.category || 'General'}</span></td>
                             <td class="text-end">
                                 <button class="btn btn-sm btn-outline-primary" onclick="openExpenseDetail('${exp.id}')">Review</button>
@@ -270,7 +285,7 @@ function renderFullApprovalList() {
                                 <div class="text-muted small">${exp.id.substring(0,8)}</div>
                             </td>
                             <td><span class="badge bg-light text-dark shadow-sm border">${exp.category || 'General'}</span></td>
-                            <td class="fw-bold text-primary">$${exp.amount}</td>
+                            <td class="fw-bold text-primary">${getCurrencySymbol(exp.currency || 'USD')}${exp.amount}</td>
                             <td>${new Date(exp.createdAt).toLocaleDateString()}</td>
                             <td class="text-end">
                                 <button class="btn btn-sm btn-primary px-3 shadow-sm" onclick="openExpenseDetail('${exp.id}')">

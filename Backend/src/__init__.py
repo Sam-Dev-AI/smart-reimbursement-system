@@ -16,7 +16,7 @@ def create_app():
                 static_folder=str(static_dir))
     
     # Configuration
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_secret_key_reimbursement')
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secret_key_here')
     CORS(app)
 
     # Register Blueprints
