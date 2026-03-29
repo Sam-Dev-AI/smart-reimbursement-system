@@ -1,0 +1,6 @@
+flask
+firebase-admin
+python-dotenv
+pytest
+flask-cors
+requests
