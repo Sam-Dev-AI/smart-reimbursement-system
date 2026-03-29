@@ -270,9 +270,9 @@ class FirebaseService:
 
     def evaluate_expense_status(self, expense_id, company_id):
         """
-        Evaluates the current status based on Sequential + Conditional Logic:
-        1. Manager Approval (Step 1)
-        2. Finance Approval (Step 2 - ONLY if assigned)
+        Evaluates the current status based on Threshold Logic:
+        1. Manager Approval
+        2. Finance Approval (ONLY if expense amount > threshold AND Finance is assigned)
         """
         try:
             expense_ref = self.db.collection('expenses').document(expense_id)
@@ -287,7 +287,10 @@ class FirebaseService:
             manager_data = self.get_user_data(manager_uid) if manager_uid else {}
             assigned_finance_uid = manager_data.get('assignedFinanceId')
 
+            # Fetch workflow config (now expects a financeThreshold property)
             workflow = self.get_approval_workflow(company_id)
+            finance_threshold = workflow.get('financeThreshold', 0)
+            
             approvals = expense.get('approvals', {}) # {uid: action}
             
             # Check rejection first
@@ -299,15 +302,10 @@ class FirebaseService:
             manager_approved = manager_uid and approvals.get(manager_uid) == 'approved'
             
             if manager_approved:
-                # If manager approved, we move to the next step
-                # Is there a Finance step defined in workflow?
-                has_finance_step = any(s.get('role') == 'finance' for s in workflow.get('steps', []))
+                amount = float(expense.get('amount', 0))
                 
-                if not has_finance_step or not assigned_finance_uid:
-                    # Skip Finance if not in workflow OR not assigned to this manager
-                    expense_ref.update({'status': 'approved', 'finalizedAt': firestore.SERVER_TIMESTAMP})
-                    return 'approved'
-                else:
+                # Rule: Only route to finance if amount > threshold AND assigned finance exists
+                if amount > finance_threshold and assigned_finance_uid:
                     # Waiting for Finance
                     if approvals.get(assigned_finance_uid) == 'approved':
                         expense_ref.update({'status': 'approved', 'finalizedAt': firestore.SERVER_TIMESTAMP})
@@ -315,6 +313,10 @@ class FirebaseService:
                     else:
                         expense_ref.update({'status': 'pending_finance'})
                         return 'pending_finance'
+                else:
+                    # Under threshold (or no finance assigned) - instantly approve!
+                    expense_ref.update({'status': 'approved', 'finalizedAt': firestore.SERVER_TIMESTAMP})
+                    return 'approved'
             
             return 'pending'
         except Exception as e:

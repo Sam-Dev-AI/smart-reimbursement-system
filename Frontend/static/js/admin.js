@@ -473,108 +473,63 @@ async function assignManager(empUid, mgrUid) {
     } catch (e) { showToast('Error assigning manager'); }
 }
 
-// ── Workflow Builder ──────────────────────────────────────────
-let workflowSteps = [];
-
+// ── Enterprise Workflow Engine (Threshold Logic) ───────────────────
 async function loadWorkflows() {
     try {
         const res = await fetch('/api/workflows');
         const data = await res.json();
         
-        // Safety: Support new companies with no specific workflow metadata yet
-        workflowData = (data && data.status === 'success') ? (data.workflow || {}) : {};
-        
-        // Default to a professional "Direct Manager" starting step if none exist
-        workflowSteps = (workflowData.steps && workflowData.steps.length > 0) 
-            ? workflowData.steps 
-            : [{ role: 'manager', label: 'Direct Manager', description: 'Standard reporting line approval' }];
-        
-        renderWorkflowSteps();
-        
-        // Sync the Manager-First toggle
-        const toggle = document.getElementById('toggle-manager-first');
-        if (toggle) {
-            if (workflowData.isManagerFirst !== false) toggle.classList.add('active');
-            else toggle.classList.remove('active');
+        let workflowData = {};
+        if (data && data.status === 'success') {
+            workflowData = data.workflow || {};
         }
+
+        const thresholdInput = document.getElementById('finance-threshold-input');
+        if (thresholdInput) {
+            // Default to 0 (always escalate) if not set
+            thresholdInput.value = workflowData.financeThreshold ?? 0; 
+        }
+
+        // Just calling loadRules() to fulfill legacy code dependencies if needed
+        loadRules(workflowData);
         
-        // Auto-refresh the Advanced Rules tab in the background
-        loadRules();
-        
-    } catch (e) { 
+    } catch (e) {
         console.error('Workflow system error:', e);
-        // Fallback UI to prevent "blank" screen
-        workflowSteps = [{ role: 'manager', label: 'Direct Manager', description: 'Standard reporting line approval' }];
-        renderWorkflowSteps();
     }
 }
 
-function renderWorkflowSteps() {
-    const container = document.getElementById('workflow-steps');
-    if (!container) return;
+document.getElementById('save-workflow-btn')?.addEventListener('click', async () => {
+    const thresholdInput = document.getElementById('finance-threshold-input');
+    const percInput = document.getElementById('rule-percentage');
+    const approverSelect = document.getElementById('rule-auto-approver');
+    const limitInput = document.getElementById('rule-auto-limit');
 
-    if (workflowSteps.length === 0) {
-        container.innerHTML = '<div class="empty-state"><div class="empty-state-text">No approval steps defined. Use "+ Add Step" to build your chain.</div></div>';
-        return;
-    }
+    const financeThreshold = thresholdInput ? (parseFloat(thresholdInput.value) || 0) : 0;
+    
+    const advancedRules = {
+        percentageRequired: percInput ? (parseInt(percInput.value) || 100) : 100,
+        autoApprover: approverSelect ? approverSelect.value : '',
+        autoApproveLimit: limitInput ? (parseFloat(limitInput.value) || 0) : 0
+    };
 
-    let html = '';
-    workflowSteps.forEach((step, i) => {
-        if (i > 0) html += '<div class="workflow-connector"></div>';
-        html += `<div class="workflow-step" style="animation: fadeIn 0.3s ease forwards; animation-delay: ${i * 0.05}s">
-            <div class="workflow-step-number">${i + 1}</div>
-            <div class="workflow-step-content">
-                <div class="workflow-step-role">${step.label || step.role}</div>
-                <div class="workflow-step-desc">${step.description || 'Approves claims at this stage.'}</div>
-            </div>
-            <div class="workflow-step-actions">
-                ${i > 0 ? `<button class="btn-action btn-action-outline btn-action-sm" onclick="moveStep(${i}, -1)" title="Move Up">↑</button>` : ''}
-                ${i < workflowSteps.length - 1 ? `<button class="btn-action btn-action-outline btn-action-sm" onclick="moveStep(${i}, 1)" title="Move Down">↓</button>` : ''}
-                <button class="btn-action btn-action-danger btn-action-sm" onclick="removeStep(${i})" title="Remove Step">×</button>
-            </div>
-        </div>`;
-    });
-    container.innerHTML = html;
-}
-
-document.getElementById('add-step-btn').addEventListener('click', () => {
-    const label = prompt('Step label (e.g., Finance Director, HR Head):');
-    if (label) {
-        workflowSteps.push({ role: label.toLowerCase().replace(/\s+/g, '_'), label: label, description: 'Custom approval step' });
-        renderWorkflowSteps();
-    }
-});
-
-window.moveStep = function(index, direction) {
-    const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= workflowSteps.length) return;
-    [workflowSteps[index], workflowSteps[newIndex]] = [workflowSteps[newIndex], workflowSteps[index]];
-    renderWorkflowSteps();
-};
-
-window.removeStep = function(index) {
-    workflowSteps.splice(index, 1);
-    renderWorkflowSteps();
-};
-
-document.getElementById('save-workflow-btn').addEventListener('click', async () => {
-    const isManagerFirst = document.getElementById('toggle-manager-first').classList.contains('active');
     try {
         const res = await fetch('/api/workflows', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ steps: workflowSteps, isManagerFirst })
+            body: JSON.stringify({ financeThreshold, advancedRules })
         });
         const data = await res.json();
-        if (data.status === 'success') showToast('Workflow saved');
+        if (data.status === 'success') showToast('Enterprise workflow settings saved!');
         else showToast('Error: ' + data.message);
-    } catch (e) { showToast('Error saving workflow'); }
+    } catch (e) { 
+        showToast('Error saving workflow configuration'); 
+    }
 });
 
-// ── Advanced Rules ────────────────────────────────────────────
-async function loadRules() {
+// ── Advanced Rules (Legacy Stub for auto-approvers) ───────────
+async function loadRules(workflowData) {
     try {
-        // Use the shared workflowData to avoid a redundant API call
+        workflowData = workflowData || {};
         const rules = workflowData.advancedRules || {};
         
         const percInput = document.getElementById('rule-percentage');
@@ -604,23 +559,6 @@ async function loadRules() {
     }
 }
 
-document.getElementById('save-rules-btn').addEventListener('click', async () => {
-    const advancedRules = {
-        percentageRequired: parseInt(document.getElementById('rule-percentage').value) || 100,
-        autoApprover: document.getElementById('rule-auto-approver').value,
-        autoApproveLimit: parseFloat(document.getElementById('rule-auto-limit').value) || 0
-    };
-    try {
-        const res = await fetch('/api/workflows', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ advancedRules })
-        });
-        const data = await res.json();
-        if (data.status === 'success') showToast('Rules saved');
-        else showToast('Error: ' + data.message);
-    } catch (e) { showToast('Error saving rules'); }
-});
 
 // ── Expense Oversight ─────────────────────────────────────────
 async function loadExpenses() {
@@ -669,22 +607,7 @@ window.overrideExpense = async function(expenseId, action) {
     } catch (e) { showToast('Error overriding expense'); }
 };
 
-// ── Threshold Rules (Add Rule) ────────────────────────────────
-document.getElementById('add-threshold-btn').addEventListener('click', () => {
-    const container = document.getElementById('threshold-rules');
-    const id = Date.now();
-    const html = `<div class="rule-card" id="rule-${id}">
-        <div class="rule-card-header">
-            <div class="rule-card-title">Amount Threshold</div>
-            <button class="btn-action btn-action-danger btn-action-sm" onclick="document.getElementById('rule-${id}').remove()">Remove</button>
-        </div>
-        <div class="form-grid">
-            <div class="form-group"><label>If amount exceeds</label><input type="number" placeholder="e.g., 50000"></div>
-            <div class="form-group"><label>Route to</label><select class="role-select"><option>Finance Director</option><option>CFO</option><option>CEO</option></select></div>
-        </div>
-    </div>`;
-    container.insertAdjacentHTML('beforeend', html);
-});
+
 
 // ── Interactive Org Hierarchy ──────────────────────────────
 let hZoom = 1;
@@ -801,13 +724,24 @@ function renderOrgTree() {
     hSvg.innerHTML = '';
     
     // 1. Build hierarchy object
-    const admin = allEmployees.find(e => e.role === 'admin');
-    if (!admin) {
-        hStage.innerHTML = '<div class="empty-state">No Admin found</div>';
+    // Find all users who do NOT have a manager assigned
+    const rootUsers = allEmployees.filter(e => !e.managerId);
+    
+    if (rootUsers.length === 0 && allEmployees.length > 0) {
+        // Fallback if there's a circular dependency or everyone has a manager (rare)
+        rootUsers.push(allEmployees[0]);
+    } else if (rootUsers.length === 0) {
+        hStage.innerHTML = '<div class="empty-state">No Organization Data</div>';
         return;
     }
 
-    const structure = buildTree(admin.uid, allEmployees);
+    // Attach all unassigned users to a virtual root node so nobody is dropped
+    const structure = {
+        uid: 'virtual_root',
+        fullName: 'Executive Board',
+        role: 'admin',
+        children: rootUsers.map(u => buildTree(u.uid, allEmployees))
+    };
     
     // 2. Position nodes (Professional Hybrid Layout)
     const nodeWidth = 240;
