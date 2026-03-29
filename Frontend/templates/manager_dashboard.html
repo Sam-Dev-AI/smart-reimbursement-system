@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Dashboard | Smart Reimbursement</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon">SR</div>
+            <div class="sidebar-brand-text">
+                Smart Reimburse
+                <span>Management System</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="sidebar-nav-section">
+                <div class="sidebar-nav-label">Main</div>
+                <a href="#" class="sidebar-nav-item active">
+                    <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="sidebar-nav-item">
+                    <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <span>Approvals</span>
+                </a>
+                <a href="#" class="sidebar-nav-item">
+                    <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                    <span>My Team</span>
+                </a>
+            </div>
+            <div class="sidebar-nav-section">
+                <div class="sidebar-nav-label">Reports</div>
+                <a href="#" class="sidebar-nav-item">
+                    <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    <span>Analytics</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <div class="sidebar-avatar" id="user-avatar">--</div>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name" id="user-name">Loading...</div>
+                    <div class="sidebar-user-role" id="user-role">manager</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <div>
+                    <div class="topbar-title">Manager Dashboard</div>
+                    <div class="topbar-breadcrumb">Approvals & Team Overview</div>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <span class="topbar-role-badge badge-manager">Manager</span>
+                <a href="/logout" class="topbar-btn" title="Logout">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </a>
+            </div>
+        </header>
+
+        <div class="page-content">
+            <div class="welcome-banner">
+                <div>
+                    <div class="welcome-title" id="welcome-text">Welcome back!</div>
+                    <div class="welcome-subtitle">Review pending expense approvals from your team.</div>
+                </div>
+                <div class="welcome-badge">Manager</div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-label">Pending Approvals</span>
+                        <div class="stat-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                    </div>
+                    <div class="stat-card-value">0</div>
+                    <div class="stat-card-change stat-change-down">Needs your review</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-label">Approved</span>
+                        <div class="stat-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+                    </div>
+                    <div class="stat-card-value">0</div>
+                    <div class="stat-card-change stat-change-up">This month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-label">Rejected</span>
+                        <div class="stat-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+                    </div>
+                    <div class="stat-card-value">0</div>
+                    <div class="stat-card-change">This month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-label">Team Size</span>
+                        <div class="stat-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+                    </div>
+                    <div class="stat-card-value">--</div>
+                    <div class="stat-card-change">Direct reports</div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="content-card-header">
+                    <div class="content-card-title">Pending Expense Requests</div>
+                </div>
+                <div class="content-card-body">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">&#128203;</div>
+                        <div class="empty-state-text">No pending expense requests from your team.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadProfile() {
+            try {
+                const res = await fetch('/api/user/profile');
+                const data = await res.json();
+                if (data.status === 'success') {
+                    const user = data.user;
+                    const initials = (user.fullName || 'U').split(' ').map(n => n[0]).join('').toUpperCase();
+                    document.getElementById('user-avatar').textContent = initials;
+                    document.getElementById('user-name').textContent = user.fullName || 'User';
+                    document.getElementById('welcome-text').textContent = `Welcome back, ${(user.fullName || 'Manager').split(' ')[0]}`;
+                }
+            } catch (e) { console.error(e); }
+        }
+        loadProfile();
+    </script>
+</body>
+</html>
