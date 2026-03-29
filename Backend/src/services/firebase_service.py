@@ -291,15 +291,24 @@ class FirebaseService:
             workflow = self.get_approval_workflow(company_id)
             finance_threshold = workflow.get('financeThreshold', 0)
             
-            approvals = expense.get('approvals', {}) # {uid: action}
+            approvals = expense.get('approvals', {}) # {uid: {'action':'approved', ...}}
             
+            # Extract plain action strings for easy checking
+            # Handle both string values (legacy) and dict values (new format)
+            actions = {}
+            for uid, val in approvals.items():
+                if isinstance(val, dict):
+                    actions[uid] = val.get('action')
+                else:
+                    actions[uid] = val
+                    
             # Check rejection first
-            if 'rejected' in approvals.values():
+            if 'rejected' in actions.values():
                 expense_ref.update({'status': 'rejected'})
                 return 'rejected'
 
             # 1. Check Manager Approval
-            manager_approved = manager_uid and approvals.get(manager_uid) == 'approved'
+            manager_approved = manager_uid and actions.get(manager_uid) == 'approved'
             
             if manager_approved:
                 amount = float(expense.get('amount', 0))
@@ -307,7 +316,7 @@ class FirebaseService:
                 # Rule: Only route to finance if amount > threshold AND assigned finance exists
                 if amount > finance_threshold and assigned_finance_uid:
                     # Waiting for Finance
-                    if approvals.get(assigned_finance_uid) == 'approved':
+                    if actions.get(assigned_finance_uid) == 'approved':
                         expense_ref.update({'status': 'approved', 'finalizedAt': firestore.SERVER_TIMESTAMP})
                         return 'approved'
                     else:
@@ -423,23 +432,42 @@ class FirebaseService:
 
     def create_expense(self, expense_data):
         """Creates a new expense record with currency normalization."""
+        from .currency_service import currency_service
         try:
             expense_data['createdAt'] = firestore.SERVER_TIMESTAMP
             expense_data['status'] = 'pending_manager'
             expense_data['approvals'] = {}
             
-            # Currency Logic (Default is INR for this example)
-            # In a real app, this would use an exchange rate service
             if 'originalCurrency' in expense_data and 'originalAmount' in expense_data:
-                rate = 1.0
-                if expense_data['originalCurrency'] == 'EUR': rate = 90.0
-                elif expense_data['originalCurrency'] == 'USD': rate = 83.0
-                elif expense_data['originalCurrency'] == 'GBP': rate = 105.0
+                # Dynamic Threshold Evaluation
+                company_id = expense_data.get('companyId')
+                base_currency = 'INR'
                 
-                expense_data['convertedAmount'] = float(expense_data['originalAmount']) * rate
-                expense_data['convertedCurrency'] = 'INR'
-                # Ensure 'amount' is set to converted amount for legacy compatibility
-                expense_data['amount'] = expense_data['convertedAmount']
+                if company_id:
+                    company_data = self.get_company_data(company_id)
+                    base_currency = company_data.get('baseCurrency', 'INR')
+
+                expense_currency = expense_data['originalCurrency']
+                original_amount = float(expense_data['originalAmount'])
+
+                if expense_currency == base_currency:
+                    converted_amount = original_amount
+                else:
+                    # Get rates relative to the base currency
+                    rates = currency_service.get_exchange_rates(base_currency)
+                    # Ex: rates.get('USD') gives us how many USD = 1 BaseCurrency
+                    # So to convert USD to BaseCurrency, we DIVIDE by the rate.
+                    rate_to_currency = rates.get(expense_currency)
+                    
+                    if rate_to_currency and rate_to_currency > 0:
+                        converted_amount = original_amount / rate_to_currency
+                    else:
+                        # Fallback if service fails or currency unsupported
+                        converted_amount = original_amount
+                
+                expense_data['convertedAmount'] = round(converted_amount, 2)
+                expense_data['convertedCurrency'] = base_currency
+                expense_data['amount'] = round(converted_amount, 2)
 
             doc_ref = self.db.collection('expenses').add(expense_data)
             return doc_ref[1].id

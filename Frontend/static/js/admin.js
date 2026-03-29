@@ -490,6 +490,20 @@ async function loadWorkflows() {
             thresholdInput.value = workflowData.financeThreshold ?? 0; 
         }
 
+        // Dynamically update currency labels based on company config
+        const baseCurLabels = document.querySelectorAll('.admin-base-currency-label');
+        baseCurLabels.forEach(label => {
+            const cur = currentCompany?.baseCurrency;
+            let sym = '₹';
+            if (cur === 'USD' || cur === 'CAD' || cur === 'AUD') sym = '$';
+            else if (cur === 'EUR') sym = '€';
+            else if (cur === 'GBP') sym = '£';
+            else if (cur === 'AED') sym = 'د.إ';
+            else if (cur) sym = cur;
+
+            label.textContent = sym;
+        });
+
         // Just calling loadRules() to fulfill legacy code dependencies if needed
         loadRules(workflowData);
         
