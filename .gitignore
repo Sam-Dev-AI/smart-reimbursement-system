@@ -16,3 +16,7 @@ Backend/src/config/serviceAccountKey.json
 # OS files
 .DS_Store
 Thumbs.db
+
+
+tests
+scripts

@@ -30,6 +30,9 @@ def create_app():
     def index():
         if 'user' in session:
             role = session.get('role', 'employee')
+            # Manager and Finance share the same dashboard endpoint
+            if role in ['manager', 'finance']:
+                return redirect(url_for('dashboard.approver_dashboard'))
             return redirect(url_for(f'dashboard.{role}_dashboard'))
         return redirect(url_for('auth.login'))
 

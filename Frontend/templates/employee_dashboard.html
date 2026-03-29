@@ -7,40 +7,224 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <style>
+        /* Override/Fix for visibility */
+        .quick-action-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, var(--deep-navy), var(--primary-blue));
+            padding: 32px;
+            border-radius: 16px;
+            color: white;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 25px rgba(0, 51, 102, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        .quick-action-header::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .quick-action-text .welcome-title {
+            color: #ffffff !important;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            font-family: 'Outfit', sans-serif;
+        }
+        .quick-action-text .welcome-subtitle {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 15px;
+        }
+        .quick-action-buttons {
+            display: flex;
+            gap: 12px;
+            z-index: 10;
+        }
+        .btn-premium-white {
+            background: #ffffff;
+            color: var(--primary-blue);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .btn-premium-white:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+            background: #f8fafc;
+        }
+        .btn-premium-outline {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            color: #ffffff;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-premium-outline:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #ffffff;
+            transform: translateY(-2px);
+        }
+        
+        /* Table Fixes */
+        .data-table thead th {
+            padding: 16px 12px;
+            background: #f8fafc;
+        }
+        .data-table tbody td {
+            padding: 16px 12px;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .status-pending { background: #fffced; color: #856404; border: 1px solid #ffeeba; }
+        .status-approved { background: #f0fff4; color: #22543d; border: 1px solid #c6f6d5; }
+        .status-rejected { background: #fff5f5; color: #822727; border: 1px solid #fed7d7; }
+        
+        .approver-info {
+            font-size: 11px;
+            color: var(--gray-500);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 6px;
+        }
+
+        /* Timeline Styles */
+        .timeline {
+            position: relative;
+            padding-left: 32px;
+            margin-top: 20px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e2e8f0;
+        }
+        .timeline-step {
+            position: relative;
+            margin-bottom: 24px;
+        }
+        .step-icon {
+            position: absolute;
+            left: -32px;
+            width: 32px;
+            height: 32px;
+            background: white;
+            border: 2px solid #cbd5e1;
+            border-radius: 50%;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .step-icon::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: #cbd5e1;
+            border-radius: 50%;
+        }
+        .step-content {
+            padding-left: 10px;
+        }
+        .step-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--gray-900);
+            display: flex;
+            justify-content: space-between;
+        }
+        .step-date {
+            font-weight: 400;
+            color: var(--gray-500);
+            font-size: 12px;
+        }
+        .step-detail {
+            font-size: 13px;
+            color: var(--gray-600);
+            margin-top: 2px;
+        }
+        
+        .step-completed .step-icon { border-color: var(--success); background: var(--success); }
+        .step-completed .step-icon::after { background: white; }
+        .step-completed .step-title { color: var(--success); }
+        
+        .step-current .step-icon { border-color: var(--primary-blue); background: white; }
+        .step-current .step-icon::after { background: var(--primary-blue); animation: pulse 2s infinite; }
+        .step-current .step-title { color: var(--primary-blue); }
+
+        .step-rejected .step-icon { border-color: var(--danger); background: var(--danger); }
+        .step-rejected .step-icon::after { background: white; }
+        .step-rejected .step-title { color: var(--danger); }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 81, 153, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 81, 153, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 81, 153, 0); }
+        }
+    </style>
 </head>
 <body>
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
+    <!-- Sidebar (Shared logic) -->
+    <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <div class="sidebar-brand-icon">SR</div>
             <div class="sidebar-brand-text">
-                Smart Reimburse
-                <span>Management System</span>
+                SubTech
+                <span>Employee Portal</span>
+            </div>
+            <div class="sidebar-toggle" onclick="toggleSidebar()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg>
             </div>
         </div>
 
         <nav class="sidebar-nav">
             <div class="sidebar-nav-section">
                 <div class="sidebar-nav-label">Main</div>
-                <a href="#" class="sidebar-nav-item active">
+                <a href="javascript:void(0)" class="sidebar-nav-item active" onclick="switchSection('overview', this)">
                     <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                    <span>Dashboard</span>
+                    <span>Overview</span>
                 </a>
-                <a href="#" class="sidebar-nav-item">
+                <a href="javascript:void(0)" class="sidebar-nav-item" onclick="switchSection('expenses', this)">
                     <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                     <span>My Expenses</span>
                 </a>
-                <a href="#" class="sidebar-nav-item">
-                    <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                    <span>History</span>
-                </a>
-            </div>
-            <div class="sidebar-nav-section">
-                <div class="sidebar-nav-label">Tools</div>
-                <a href="#" class="sidebar-nav-item">
-                    <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-                    <span>Scan Receipt</span>
+                <a href="javascript:void(0)" class="sidebar-nav-item" onclick="switchSection('tracking', this)">
+                    <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>Tracking</span>
                 </a>
             </div>
         </nav>
@@ -49,7 +233,7 @@
             <div class="sidebar-user">
                 <div class="sidebar-avatar" id="user-avatar">--</div>
                 <div class="sidebar-user-info">
-                    <div class="sidebar-user-name" id="user-name">Loading...</div>
+                    <div class="sidebar-user-name" id="user-name">--</div>
                     <div class="sidebar-user-role" id="user-role">employee</div>
                 </div>
             </div>
@@ -61,8 +245,8 @@
         <header class="topbar">
             <div class="topbar-left">
                 <div>
-                    <div class="topbar-title">My Dashboard</div>
-                    <div class="topbar-breadcrumb">Expenses & Reimbursements</div>
+                    <div class="topbar-title">Overview</div>
+                    <div class="topbar-breadcrumb">Employee Dashboard / Expenses</div>
                 </div>
             </div>
             <div class="topbar-right">
@@ -74,79 +258,630 @@
         </header>
 
         <div class="page-content">
-            <div class="welcome-banner">
-                <div>
-                    <div class="welcome-title" id="welcome-text">Welcome!</div>
-                    <div class="welcome-subtitle">Submit and track your expense reimbursements.</div>
+            <!-- SECTION: OVERVIEW -->
+            <div id="section-overview" class="dashboard-section active">
+                <div class="quick-action-header">
+                    <div class="quick-action-text">
+                        <div class="welcome-title" id="welcome-text">Welcome, Employee!</div>
+                        <div class="welcome-subtitle">Snap a receipt or fill a form to get reimbursed instantly.</div>
+                    </div>
+                    <div class="quick-action-buttons">
+                        <button class="btn-premium-outline" data-bs-toggle="modal" data-bs-target="#ocrModal">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                            Scan Receipt
+                        </button>
+                        <button class="btn-premium-white" data-bs-toggle="modal" data-bs-target="#expenseModal">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            New Expense
+                        </button>
+                    </div>
                 </div>
-                <button class="welcome-badge" style="cursor:pointer; border:none;">+ New Expense</button>
+
+                <div class="stats-grid mt-4">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <span class="stat-card-label">Total Reimbursed</span>
+                            <div class="stat-card-icon" style="background:#f0fff4; color:#22543d;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            </div>
+                        </div>
+                        <div class="stat-card-value" id="stat-reimbursed">$0.00</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <span class="stat-card-label">Pending Review</span>
+                            <div class="stat-card-icon" style="background:#fffcf0; color:#856404;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            </div>
+                        </div>
+                        <div class="stat-card-value" id="stat-pending">$0.00</div>
+                    </div>
+                </div>
             </div>
 
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <span class="stat-card-label">Submitted</span>
-                        <div class="stat-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <!-- SECTION: EXPENSES -->
+            <div id="section-expenses" class="dashboard-section">
+                <div class="content-card">
+                    <div class="content-card-header d-flex flex-wrap gap-2">
+                        <div class="content-card-title me-auto">My Expense History</div>
+                        <div class="d-flex gap-2">
+                            <input type="text" id="search-input" class="form-control form-control-sm bg-light" placeholder="Search..." oninput="applyFilters()" style="width:180px; border-radius:8px;">
+                            <select class="form-select form-select-sm" id="filter-status" onchange="applyFilters()" style="width:120px; border-radius:8px;">
+                                <option value="">Status</option>
+                                <option value="approved">Approved</option>
+                                <option value="pending_manager">Pending Mgr</option>
+                                <option value="pending_finance">Pending Fin</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="stat-card-value">0</div>
-                    <div class="stat-card-change">Total claims</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <span class="stat-card-label">Approved</span>
-                        <div class="stat-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+                    <div class="content-card-body p-0">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th style="padding-left: 24px;">Description</th>
+                                    <th>Category</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th style="padding-right: 24px; text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expense-tbody"></tbody>
+                        </table>
                     </div>
-                    <div class="stat-card-value">0</div>
-                    <div class="stat-card-change stat-change-up">Reimbursed</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <span class="stat-card-label">Pending</span>
-                        <div class="stat-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-                    </div>
-                    <div class="stat-card-value">0</div>
-                    <div class="stat-card-change stat-change-down">Awaiting approval</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <span class="stat-card-label">Rejected</span>
-                        <div class="stat-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
-                    </div>
-                    <div class="stat-card-value">0</div>
-                    <div class="stat-card-change">Review needed</div>
                 </div>
             </div>
 
-            <div class="content-card">
-                <div class="content-card-header">
-                    <div class="content-card-title">My Recent Expenses</div>
-                    <span class="content-card-action">Submit New</span>
-                </div>
-                <div class="content-card-body">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">&#128221;</div>
-                        <div class="empty-state-text">You haven't submitted any expenses yet. Click "New Expense" to get started.</div>
+            <!-- SECTION: TRACKING -->
+            <div id="section-tracking" class="dashboard-section">
+                <div class="content-card">
+                    <div class="content-card-header">
+                        <div class="content-card-title">Live Approval Tracking</div>
+                    </div>
+                    <div class="content-card-body">
+                        <div id="tracking-list" class="row g-4">
+                            <!-- Populated with active expense cards -->
+                        </div>
+                        <div id="tracking-empty" class="text-center py-5 text-muted d-none">
+                            You have no active expenses in the approval chain.
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Modals -->
+
+    <!-- Submit Expense Modal -->
+    <div class="modal fade" id="expenseModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; border:none; box-shadow: 0 25px 50px rgba(0,0,0,0.22)">
+                <div class="modal-header" style="border:none; padding: 24px 32px 10px;">
+                    <h5 class="modal-title" style="font-weight: 800; font-family:'Outfit'">Submit New Claim</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding: 20px 32px 32px;">
+                    <form id="expenseForm">
+                        <div class="row g-3">
+                            <div class="col-8">
+                                <label class="form-label fw-bold small text-secondary">AMOUNT</label>
+                                <input type="number" step="0.01" class="form-control" id="expAmount" placeholder="0.00" required style="padding:12px; border-radius:10px;">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label fw-bold small text-secondary">CURRENCY</label>
+                                <select class="form-select" id="expCurrency" style="padding:12px; border-radius:10px;">
+                                    <option value="USD">USD ($)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label fw-bold small text-secondary">CATEGORY</label>
+                            <select class="form-select" id="expCategory" required style="padding:12px; border-radius:10px;">
+                                <option value="" disabled selected>Select...</option>
+                                <option value="Travel">Travel</option>
+                                <option value="Food & Dining">Food & Dining</option>
+                                <option value="Office Supplies">Office Supplies</option>
+                                <option value="Software">Software</option>
+                            </select>
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label fw-bold small text-secondary">DATE</label>
+                            <input type="date" class="form-control" id="expDate" required style="padding:12px; border-radius:10px;">
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label fw-bold small text-secondary">DESCRIPTION</label>
+                            <textarea class="form-control" id="expDescription" rows="2" placeholder="Tell us what this is for..." required style="padding:12px; border-radius:10px;"></textarea>
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label fw-bold small text-secondary">PROOF (RECEIPT)</label>
+                            <div class="p-3 border rounded-3 text-center" style="background:#f8fafc; cursor:pointer;" onclick="document.getElementById('expReceipt').click()">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mb-2 text-primary"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                <div class="small fw-600">Click to upload image</div>
+                            </div>
+                            <input type="file" id="expReceipt" hidden accept="image/*">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer" style="border:none; padding: 0 32px 32px;">
+                    <button type="button" class="btn btn-light w-100" style="padding:12px; border-radius:10px; font-weight:600;" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary w-100" onclick="submitExpense()" style="padding:12px; border-radius:10px; font-weight:700; background:var(--primary-blue)">Submit Claim</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OCR Modal -->
+    <div class="modal fade" id="ocrModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; border:none;">
+                <div class="modal-header" style="border:none; padding: 24px 32px 0;">
+                    <h5 class="modal-title" style="font-weight: 800; font-family:'Outfit'">AI Receipt Scanner</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center" style="padding: 40px 32px;">
+                    <div class="mb-4 d-inline-block p-4 rounded-circle" style="background:var(--light-blue); color:var(--primary-blue)">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                    <h4 class="fw-bold">Snap & Auto-Fill</h4>
+                    <p class="text-secondary small px-3">Upload a photo of your receipt and our AI will extract all details for you instantly.</p>
+                    
+                    <input type="file" id="ocrFile" hidden accept="image/*">
+                    <button class="btn btn-primary w-100 mt-3" onclick="document.getElementById('ocrFile').click()" style="padding:14px; border-radius:12px; font-weight:700; background:var(--primary-blue)">Choose Receipt Image</button>
+                    
+                    <div id="ocrLoading" style="display:none; margin-top:24px;">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="mt-2 fw-600 text-primary">AI is reading receipt...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Approval Tracking Modal -->
+    <div class="modal fade" id="trackingModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; border:none; box-shadow: 0 25px 50px rgba(0,0,0,0.22)">
+                <div class="modal-header" style="border:none; padding: 24px 32px 0;">
+                    <h5 class="modal-title" style="font-weight: 800; font-family:'Outfit'">Approval Tracking</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding: 24px 32px 32px;">
+                    <div id="tracking-content">
+                        <!-- Vertical Timeline -->
+                        <div class="timeline" id="approval-timeline">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
+        // ══════════════════════════════════════════════════════════════
+        // INITIALIZATION
+        // ══════════════════════════════════════════════════════════════
+        let allExpenses = [];
+        let currentWorkflow = { steps: [{role: 'manager', label: 'Manager Review'}, {role: 'finance', label: 'Finance Audit'}] };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProfile();
+            loadDashboardData();
+            loadWorkflow();
+        });
+
         async function loadProfile() {
             try {
                 const res = await fetch('/api/user/profile');
                 const data = await res.json();
                 if (data.status === 'success') {
                     const user = data.user;
-                    const initials = (user.fullName || 'U').split(' ').map(n => n[0]).join('').toUpperCase();
+                    const name = user.fullName || user.name || 'User';
+                    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
                     document.getElementById('user-avatar').textContent = initials;
-                    document.getElementById('user-name').textContent = user.fullName || 'User';
-                    document.getElementById('welcome-text').textContent = `Welcome, ${(user.fullName || 'User').split(' ')[0]}`;
+                    document.getElementById('user-name').textContent = name;
+                    document.getElementById('welcome-text').textContent = `Welcome, ${name.split(' ')[0]}!`;
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error('Profile Error:', e); }
         }
-        loadProfile();
+
+        async function loadWorkflow() {
+            try {
+                const res = await fetch('/api/workflows');
+                const data = await res.json();
+                if (data.status === 'success') {
+                    currentWorkflow = data.workflow;
+                }
+            } catch (e) { console.error('Workflow Error:', e); }
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // NAVIGATION & UI
+        // ══════════════════════════════════════════════════════════════
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        }
+
+        function switchSection(sectionId, element) {
+            // Update active link
+            document.querySelectorAll('.sidebar-nav-item').forEach(item => item.classList.remove('active'));
+            if (element) element.classList.add('active');
+
+            // Hide all sections
+            document.querySelectorAll('.dashboard-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Show targets
+            document.getElementById(`section-${sectionId}`).classList.add('active');
+
+            // Update Breadcrumb
+            const titles = { 'overview': 'Overview', 'expenses': 'My Expenses', 'tracking': 'Approval Tracking' };
+            document.querySelector('.topbar-title').innerText = titles[sectionId];
+
+            if (sectionId === 'tracking') renderTrackingList();
+        }
+
+        function renderExpenseHistory(expenses) {
+            const tbody = document.getElementById('expense-tbody');
+            tbody.innerHTML = '';
+
+            if (expenses.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-muted">No expenses found.</td></tr>`;
+                return;
+            }
+
+            expenses.forEach(exp => {
+                const date = new Date(exp.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+                const statusClass = exp.status === 'approved' ? 'status-approved' : 
+                                  (exp.status === 'rejected' ? 'status-rejected' : 
+                                  (exp.status === 'pending_finance' ? 'status-pending_finance' : 'status-pending'));
+                
+                let actionBtn = `<button class="btn btn-sm btn-outline-primary" style="border-radius:6px; font-size:11px;" onclick="showTracking('${exp.id}')">View Flow</button>`;
+                
+                const displayStatus = exp.status.replace('_', ' ').charAt(0).toUpperCase() + exp.status.replace('_', ' ').slice(1);
+
+                const row = `
+                    <tr>
+                        <td style="padding-left:24px;">
+                            <div style="font-weight:600; color:var(--gray-900)">${exp.description}</div>
+                            <div style="font-size:12px; color:var(--gray-500)">${date}</div>
+                        </td>
+                        <td><span class="badge" style="background:var(--gray-100); color:var(--gray-700); font-weight:500;">${exp.category}</span></td>
+                        <td style="font-weight:700;">$${parseFloat(exp.amount).toFixed(2)}</td>
+                        <td><span class="status-badge ${statusClass}">${displayStatus}</span></td>
+                        <td style="padding-right:24px; text-align:right;">${actionBtn}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+
+        function showTracking(expenseId) {
+            const exp = allExpenses.find(e => e.id === expenseId);
+            if (!exp || !currentWorkflow) {
+                alert("Tracking info not available yet.");
+                return;
+            }
+
+            const timeline = document.getElementById('approval-timeline');
+            timeline.innerHTML = '';
+
+            // 1. Initial Step: Submission
+            addTimelineStep(timeline, "Claim Submitted", "User Submission", "completed", exp.createdAt);
+
+            // 2. Workflow Steps (Manager, then optionally Finance)
+            const status = exp.status;
+            
+            // Step 1: Manager
+            let managerStatus = "pending";
+            let managerDetail = "Waiting for decision";
+            
+            if (status === 'pending_finance' || status === 'approved') {
+                managerStatus = "completed";
+                managerDetail = "Approved by Manager";
+            } else if (status === 'rejected') {
+                managerStatus = "rejected";
+                managerDetail = "Decision made";
+            } else {
+                managerStatus = "current";
+            }
+            addTimelineStep(timeline, "Manager Review", managerDetail, managerStatus);
+
+            // Step 2: Finance (Optional based on workflow and assignment)
+            const hasFinanceStep = currentWorkflow.steps.some(s => s.role === 'finance');
+            if (hasFinanceStep) {
+                let financeStatus = "pending";
+                let financeDetail = "Pending assignment or clearance";
+                
+                if (status === 'approved') {
+                    financeStatus = "completed";
+                    financeDetail = "Financial Verification Passed";
+                } else if (status === 'pending_finance') {
+                    financeStatus = "current";
+                    financeDetail = "Awaiting Finance Review";
+                } else if (status === 'rejected') {
+                    financeStatus = "rejected";
+                    financeDetail = "Process halted";
+                }
+                
+                addTimelineStep(timeline, "Finance Audit", financeDetail, financeStatus);
+            }
+
+            // 3. Final Step: Payment
+            let paymentStatus = "pending";
+            let paymentDetail = "Awaiting final clearance";
+            
+            if (status === 'approved') {
+                paymentStatus = "completed";
+                paymentDetail = "Reimbursement Processing";
+            }
+            addTimelineStep(timeline, "Payment Stage", paymentDetail, paymentStatus);
+
+            new bootstrap.Modal(document.getElementById('trackingModal')).show();
+        }
+
+        function addTimelineStep(container, title, detail, status, time = null) {
+            const dateStr = time ? new Date(time).toLocaleDateString() : '';
+            const statusClass = `step-${status}`;
+            const stepHtml = `
+                <div class="timeline-step ${statusClass}">
+                    <div class="step-icon"></div>
+                    <div class="step-content">
+                        <div class="step-title" style="display:flex; justify-content:space-between">
+                            <span>${title}</span>
+                            <span class="step-date">${dateStr}</span>
+                        </div>
+                        <div class="step-detail">${detail}</div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += stepHtml;
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // DATA LOADING & RENDERING
+        // ══════════════════════════════════════════════════════════════
+        async function loadDashboardData() {
+            try {
+                // Load Stats
+                const statsResp = await fetch('/api/expenses/my/stats');
+                const statsData = await statsResp.json();
+                if (statsData.status === 'success') {
+                    renderStats(statsData.stats);
+                }
+
+                // Load Workflow
+                const wfResp = await fetch('/api/workflows');
+                const wfData = await wfResp.json();
+                if (wfData.status === 'success' && wfData.workflow) {
+                    currentWorkflow = wfData.workflow;
+                }
+
+                // Load History & Tracking
+                const expensesResp = await fetch('/api/expenses/my');
+                const expensesData = await expensesResp.json();
+                if (expensesData.status === 'success') {
+                    allExpenses = expensesData.expenses;
+                    applyFilters(); // Initial render for history
+                    renderTrackingList(); // Initial render for tracking section
+                }
+            } catch (error) {
+                console.error('Data Load Error:', error);
+            }
+        }
+
+        function applyFilters() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const statusFilter = document.getElementById('filter-status').value;
+
+            const filtered = allExpenses.filter(exp => {
+                const matchesSearch = exp.description.toLowerCase().includes(searchTerm) || 
+                                    exp.category.toLowerCase().includes(searchTerm);
+                const matchesStatus = statusFilter === "" || exp.status === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+
+            renderExpenseHistory(filtered);
+        }
+
+        function renderStats(stats) {
+            document.getElementById('stat-reimbursed').innerText = `$${stats.totalReimbursed.toFixed(2)}`;
+            document.getElementById('stat-pending').innerText = `$${stats.pendingAmount.toFixed(2)}`;
+        }
+
+        function renderTrackingList() {
+            const container = document.getElementById('tracking-list');
+            const emptyState = document.getElementById('tracking-empty');
+            if (!container) return;
+            
+            // Show all tracked expenses (even approved ones)
+            const activeExpenses = allExpenses;
+            
+            if (activeExpenses.length === 0) {
+                container.innerHTML = '';
+                if (emptyState) emptyState.classList.remove('d-none');
+                return;
+            }
+
+            if (emptyState) emptyState.classList.add('d-none');
+
+            container.innerHTML = activeExpenses.map(exp => {
+                const totalSteps = currentWorkflow.steps.length;
+                let currentStepIndex = 0; // 0 = Manager, 1 = Finance, etc.
+                let progress = 0;
+                let currentStepLabel = currentWorkflow.steps[0].label;
+                let barColor = "bg-primary";
+                let badgeClass = "bg-primary text-white";
+                let badgeText = "Active";
+
+                if (exp.status === 'pending_manager') {
+                    currentStepIndex = 0;
+                    progress = Math.round(((currentStepIndex + 1) / (totalSteps + 1)) * 100);
+                } else if (exp.status === 'pending_finance') {
+                    currentStepIndex = 1;
+                    currentStepLabel = currentWorkflow.steps[1]?.label || "Finance Audit";
+                    progress = Math.round(((currentStepIndex + 1) / (totalSteps + 1)) * 100);
+                } else if (exp.status === 'approved') {
+                    progress = 100;
+                    currentStepLabel = "Approved";
+                    barColor = "bg-success";
+                    badgeClass = "bg-success text-white";
+                    badgeText = "Completed";
+                } else if (exp.status === 'rejected') {
+                    progress = 100;
+                    currentStepLabel = "Rejected";
+                    barColor = "bg-danger";
+                    badgeClass = "bg-danger text-white";
+                    badgeText = "Rejected";
+                } else {
+                    // Default fallback
+                    progress = 33;
+                }
+
+                return `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border-0 shadow-sm h-100 hvr-lift">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span class="badge ${badgeClass} px-3 rounded-pill">${badgeText}</span>
+                                    <span class="text-muted small">${new Date(exp.createdAt).toLocaleDateString()}</span>
+                                </div>
+                                <h5 class="card-title fw-bold mb-1">${exp.description}</h5>
+                                <p class="text-muted small mb-3">${exp.category} • ${exp.currency} ${exp.amount}</p>
+                                
+                                <div class="mb-2 d-flex justify-content-between small">
+                                    <span class="fw-medium">Status: ${currentStepLabel}</span>
+                                    <span>${progress}%</span>
+                                </div>
+                                <div class="progress mb-4" style="height: 6px;">
+                                    <div class="progress-bar ${barColor} progress-bar-animated progress-bar-striped" 
+                                         role="progressbar" style="width: ${progress}%"></div>
+                                </div>
+                                
+                                <button onclick="showTracking('${exp.id}')" 
+                                        class="btn btn-outline-primary btn-sm w-100 rounded-pill">
+                                    View Full Timeline
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // SUBMISSION & OCR
+        // ══════════════════════════════════════════════════════════════
+        async function submitExpense() {
+            const form = document.getElementById('expenseForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const btn = document.querySelector('[onclick="submitExpense()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Submitting...';
+            btn.disabled = true;
+
+            const formData = {
+                amount: document.getElementById('expAmount').value,
+                currency: document.getElementById('expCurrency').value,
+                originalAmount: document.getElementById('expAmount').value,
+                originalCurrency: document.getElementById('expCurrency').value,
+                category: document.getElementById('expCategory').value,
+                date: document.getElementById('expDate').value,
+                description: document.getElementById('expDescription').value
+            };
+
+            try {
+                const response = await fetch('/api/expenses/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                if (result.status === 'success') {
+                    bootstrap.Modal.getInstance(document.getElementById('expenseModal')).hide();
+                    form.reset();
+                    alert('Success: Expense submitted status: PENDING');
+                    loadDashboardData();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                alert('Connection Error: Failed to submit claim.');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        document.getElementById('ocrFile').addEventListener('change', async function(e) {
+            if(this.files && this.files.length > 0) {
+                const loadingDiv = document.getElementById('ocrLoading');
+                const file = this.files[0];
+                loadingDiv.style.display = 'block';
+                
+                const formData = new FormData();
+                formData.append('receipt', file);
+
+                try {
+                    const response = await fetch('/api/ocr/scan', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.status === 'success') {
+                        const data = result.data;
+                        
+                        // Populate the manual form with AI extracted data
+                        document.getElementById('expAmount').value = data.amount || "";
+                        document.getElementById('expCategory').value = data.category || "Other";
+                        document.getElementById('expDescription').value = data.description || "AI Scanned Receipt";
+                        document.getElementById('expDate').value = data.date || new Date().toISOString().split('T')[0];
+                        
+                        // Handle Currency Context
+                        if (data.currency) {
+                            const currencySelect = document.getElementById('expCurrency');
+                            // Check if option exists, if not add it dynamically
+                            let optionExists = Array.from(currencySelect.options).some(opt => opt.value === data.currency);
+                            if (!optionExists) {
+                                const newOpt = new Option(`${data.currency} (${data.currency})`, data.currency);
+                                currencySelect.add(newOpt);
+                            }
+                            currencySelect.value = data.currency;
+                        }
+
+                        // Close scanner and open the filled form
+                        bootstrap.Modal.getInstance(document.getElementById('ocrModal')).hide();
+                        new bootstrap.Modal(document.getElementById('expenseModal')).show();
+                    } else {
+                        alert('AI Scanner Error: ' + (result.message || 'Failed to read receipt'));
+                    }
+                } catch (error) {
+                    alert('Scanner Connection Error: ' + error.message);
+                } finally {
+                    loadingDiv.style.display = 'none';
+                    this.value = ""; // Clear file input
+                }
+            }
+        });
+
+        function viewReason(reason) {
+            alert("Manager Feedback: " + reason);
+        }
     </script>
 </body>
 </html>

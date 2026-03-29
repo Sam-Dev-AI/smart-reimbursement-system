@@ -51,11 +51,13 @@
             </a>
         </div>
 
-        <div class="sidebar-nav-section">
-            <div class="sidebar-nav-label">Oversight</div>
             <a href="#" class="sidebar-nav-item" data-section="expenses">
                 <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                 <span>All Expenses</span>
+            </a>
+            <a href="#" class="sidebar-nav-item" data-section="hierarchy">
+                <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><line x1="12" y1="12" x2="12" y2="15"/></svg>
+                <span>Org Hierarchy</span>
             </a>
         </div>
     </nav>
@@ -64,7 +66,7 @@
         <div class="sidebar-user">
             <div class="sidebar-avatar" id="user-avatar">--</div>
             <div class="sidebar-user-info">
-                <div class="sidebar-user-name" id="user-name">Loading...</div>
+                <div class="sidebar-user-name" id="user-name">--</div>
                 <div class="sidebar-user-role" id="user-role">admin</div>
             </div>
         </div>
@@ -105,7 +107,7 @@
                     <div class="welcome-title" id="welcome-text">Welcome back!</div>
                     <div class="welcome-subtitle">Here's your company overview for today.</div>
                 </div>
-                <div class="welcome-badge" id="company-badge">Loading...</div>
+                <div class="welcome-badge" id="company-badge">--</div>
             </div>
 
             <div class="stats-grid">
@@ -114,7 +116,7 @@
                         <span class="stat-card-label">Total Employees</span>
                         <div class="stat-card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
                     </div>
-                    <div class="stat-card-value" id="stat-employees">--</div>
+                    <div class="stat-card-value" id="stat-employees">0</div>
                     <div class="stat-card-change stat-change-up">Active members</div>
                 </div>
                 <div class="stat-card">
@@ -127,19 +129,19 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-card-header">
-                        <span class="stat-card-label">Approved This Month</span>
-                        <div class="stat-card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+                        <span class="stat-card-label">Total Managers</span>
+                        <div class="stat-card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
                     </div>
-                    <div class="stat-card-value">0</div>
-                    <div class="stat-card-change stat-change-up">This month</div>
+                    <div class="stat-card-value" id="stat-managers">0</div>
+                    <div class="stat-card-change">Direct approvers</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-card-header">
-                        <span class="stat-card-label">Base Currency</span>
-                        <div class="stat-card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+                        <span class="stat-card-label">Total Finance</span>
+                        <div class="stat-card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
                     </div>
-                    <div class="stat-card-value" id="stat-currency">--</div>
-                    <div class="stat-card-change">Company currency</div>
+                    <div class="stat-card-value" id="stat-finance">0</div>
+                    <div class="stat-card-change">Financial compliance</div>
                 </div>
             </div>
 
@@ -147,21 +149,28 @@
                 <div class="content-card">
                     <div class="content-card-header">
                         <div class="content-card-title">Team Members</div>
-                        <span class="content-card-action" id="overview-emp-count">0 members</span>
+                        <div style="display:flex; align-items:center; gap:12px">
+                            <input type="text" id="search-overview" class="search-input-sm" placeholder="Search team...">
+                            <span class="content-card-action" id="overview-emp-count">0 members</span>
+                        </div>
                     </div>
                     <div class="content-card-body">
                         <table class="data-table"><thead><tr><th>Member</th><th>Role</th><th>Status</th></tr></thead>
-                        <tbody id="overview-emp-tbody"><tr><td colspan="3"><div class="empty-state"><div class="empty-state-text">Loading...</div></div></td></tr></tbody></table>
+                        <tbody id="overview-emp-tbody"><tr><td colspan="3"><div class="empty-state"><div class="empty-state-text">No members yet.</div></div></td></tr></tbody></table>
                     </div>
                 </div>
                 <div class="content-card">
                     <div class="content-card-header">
                         <div class="content-card-title">Recent Activity</div>
                     </div>
-                    <div class="content-card-body">
-                        <div class="activity-item"><div class="activity-dot activity-dot-blue"></div><div><div class="activity-text">System initialized. Welcome to Smart Reimbursement.</div><div class="activity-time">Just now</div></div></div>
-                        <div class="activity-item"><div class="activity-dot activity-dot-green"></div><div><div class="activity-text">Company profile created successfully.</div><div class="activity-time">On signup</div></div></div>
-                        <div class="activity-item"><div class="activity-dot activity-dot-yellow"></div><div><div class="activity-text">Invite your team to get started.</div><div class="activity-time">Tip</div></div></div>
+                    <div class="content-card-body" id="recent-activity-list">
+                        <div class="activity-item">
+                            <div class="activity-dot activity-dot-blue"></div>
+                            <div>
+                                <div class="activity-text">No recent events</div>
+                                <div class="activity-time">--</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -217,14 +226,22 @@
                             <div class="form-group"><label>Full Name</label><input type="text" id="new-user-name" required placeholder="Enter full name"></div>
                             <div class="form-group"><label>Email Address</label><input type="email" id="new-user-email" required placeholder="name@company.com"></div>
                             <div class="form-group"><label>Role</label>
-                                <select id="new-user-role"><option value="employee">Employee</option><option value="manager">Manager</option></select>
+                                <select id="new-user-role" class="form-select">
+                                    <option value="employee">Employee</option>
+                                    <option value="manager">Manager</option>
+                                    <option value="finance">Finance</option>
+                                    <option value="admin">Administrator</option>
+                                </select>
                             </div>
                             <div class="form-group"><label>Temporary Password</label><input type="text" id="new-user-pass" value="Welcome@123" placeholder="Temp password"></div>
                         </div>
                         <div class="form-group"><label>Assign Manager (Optional)</label>
-                            <select id="new-user-manager"><option value="">-- No Manager --</option></select>
+                            <select id="new-user-manager" class="form-select"><option value="">-- No Manager --</option></select>
                         </div>
-                        <button type="submit" class="btn-action btn-action-primary">Create User</button>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px">
+                            <p style="font-size:12px; color:var(--gray-500); margin:0">Manager selection will persist for rapid entry.</p>
+                            <button type="submit" class="btn-action btn-action-primary">Create User</button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -233,12 +250,15 @@
             <div class="content-card">
                 <div class="content-card-header">
                     <div class="content-card-title">All Team Members</div>
-                    <span class="content-card-action" id="user-count-label">0 members</span>
+                    <div style="display:flex; align-items:center; gap:12px">
+                        <input type="text" id="search-users" class="search-input-sm" placeholder="Search by name or email...">
+                        <span class="content-card-action" id="user-count-label">0 members</span>
+                    </div>
                 </div>
                 <div class="content-card-body">
                     <table class="data-table">
                         <thead><tr><th>Member</th><th>Role</th><th>Manager</th><th>Status</th><th>Actions</th></tr></thead>
-                        <tbody id="user-tbody"><tr><td colspan="5"><div class="empty-state"><div class="empty-state-text">Loading team data...</div></div></td></tr></tbody>
+                        <tbody id="user-tbody"><tr><td colspan="5"><div class="empty-state"><div class="empty-state-text">No team data.</div></div></td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -280,6 +300,11 @@
                             <button class="btn-action btn-action-outline btn-action-sm" id="add-threshold-btn">+ Add Rule</button>
                         </div>
                         <div class="content-card-body" id="threshold-rules">
+                            <select id="workflow-role" class="form-select">
+                                <option value="manager">Manager</option>
+                                <option value="finance">Finance</option>
+                                <option value="admin">Admin Override</option>
+                            </select>
                             <div class="rule-card">
                                 <div class="rule-card-header">
                                     <div class="rule-card-title">Default Rule</div>
@@ -348,6 +373,33 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+        <!-- ════════════════════════════════════════════════════
+             SECTION 7: INTERACTIVE ORG HIERARCHY
+             ════════════════════════════════════════════════════ -->
+        <div class="dashboard-section" id="section-hierarchy">
+            <div class="section-header">
+                <div>
+                    <div class="section-title">Interactive Organization Tree</div>
+                    <div class="section-subtitle">Visual representation of your company hierarchy. Drag to move, Scroll to zoom.</div>
+                </div>
+                <div class="hierarchy-controls">
+                    <input type="text" id="search-hierarchy" class="search-input-sm" placeholder="Locate employee..." style="width:200px">
+                    <button class="btn-action btn-action-outline btn-action-sm" onclick="resetHierarchyView()">Reset View</button>
+                </div>
+            </div>
+
+            <div class="hierarchy-container" id="hierarchy-viewport">
+                <div class="hierarchy-canvas" id="hierarchy-canvas">
+                    <!-- SVG for lines -->
+                    <svg id="hierarchy-svg" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></svg>
+                    <!-- Cards will be injected here -->
+                    <div id="hierarchy-stage" style="position:relative; width:100%; height:100%;"></div>
+                </div>
+                
+                <!-- Zoom Indicator -->
+                <div class="zoom-indicator" id="zoom-level">100%</div>
             </div>
         </div>
 

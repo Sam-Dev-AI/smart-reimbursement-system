@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ role | capitalize }} Dashboard | Smart Reimbursement</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <style>
+        .badge-finance { background: #e0f2fe; color: #0369a1; }
+        .topbar-role-badge.badge-finance { background: #0369a1; color: white; }
+        
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .section-title { margin: 0; font-size: 20px; font-weight: 700; color: var(--gray-900); }
+        .section-actions { display: flex; gap: 12px; }
+        
+        .dashboard-section { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .history-drilldown { max-height: 400px; overflow-y: auto; }
+        .team-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--light-blue); color: var(--primary-blue); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; }
+    </style>
+</head>
+<body data-role="{{ role }}">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon">SR</div>
+            <div class="sidebar-brand-text">
+                Smart Reimburse
+                <span>Management System</span>
+            </div>
+            <div class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="sidebar-nav-section">
+                <div class="sidebar-nav-label">Main</div>
+                <a href="#" class="sidebar-nav-item active" data-section="overview">
+                    <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                    <span>Overview</span>
+                </a>
+                <a href="#" class="sidebar-nav-item" data-section="approvals">
+                    <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <span>Approvals</span>
+                </a>
+                {% if role == 'manager' %}
+                <a href="#" class="sidebar-nav-item" data-section="team">
+                    <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                    <span>My Team</span>
+                </a>
+                {% endif %}
+            </div>
+            <div class="sidebar-nav-section">
+                <div class="sidebar-nav-label">Reports</div>
+                <a href="#" class="sidebar-nav-item" data-section="reports">
+                    <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    <span>Analytics</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <div class="sidebar-avatar" id="user-avatar">--</div>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name" id="user-name">--</div>
+                    <div class="sidebar-user-role" id="user-role">{{ role }}</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content" id="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <div>
+                    <div class="topbar-title" id="page-title">{{ role | capitalize }} Dashboard</div>
+                    <div class="topbar-breadcrumb" id="page-breadcrumb">Management Panel / Overview</div>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <span class="topbar-role-badge badge-{{ role }}">{{ role | capitalize }}</span>
+                <a href="/logout" class="topbar-btn" title="Logout">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </a>
+            </div>
+        </header>
+
+        <div class="page-content">
+            
+            <!-- SECTION: Overview -->
+            <div id="section-overview" class="dashboard-section active">
+                <div class="welcome-banner">
+                    <div>
+                        <div class="welcome-title" id="welcome-text">Welcome back!</div>
+                        <div class="welcome-subtitle">
+                            {% if role == 'manager' %}Review direct reports' expenses.{% else %}Verify financial compliance.{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <span class="stat-card-label">Pending Reviews</span>
+                            <div class="stat-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                        </div>
+                        <div class="stat-card-value" id="stat-pending">0</div>
+                        <div class="stat-card-change">Awaiting your action</div>
+                    </div>
+                </div>
+
+                <div class="content-card mt-4">
+                    <div class="content-card-header">
+                        <div class="content-card-title">Recent Pending Approvals</div>
+                        <button class="btn btn-sm btn-outline-primary" onclick="switchSection('approvals')">View All</button>
+                    </div>
+                    <div class="content-card-body" id="pending-list-mini">
+                        <div class="text-center py-4">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: Approvals -->
+            <div id="section-approvals" class="dashboard-section">
+                <div class="section-header">
+                    <h2 class="section-title">Approval Queue</h2>
+                    <div class="section-actions">
+                        <input type="text" id="approval-search" class="form-control form-control-sm" placeholder="Search employee..." style="width: 200px;">
+                        <select id="approval-filter-category" class="form-select form-select-sm" style="width: 150px;">
+                            <option value="all">All Categories</option>
+                            <option value="Travel">Travel</option>
+                            <option value="Food">Food</option>
+                            <option value="Office">Office</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="content-card">
+                    <div class="content-card-body" id="full-approval-list">
+                        <!-- Full table goes here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: My Team -->
+            <div id="section-team" class="dashboard-section">
+                <div class="section-header">
+                    <h2 class="section-title">Team Management</h2>
+                </div>
+                <div class="content-card">
+                    <div class="content-card-body" id="team-list-container">
+                        <!-- Team member table -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: Reports (Placeholder) -->
+            <div id="section-reports" class="dashboard-section">
+                <div class="row g-4">
+                    <div class="col-md-8">
+                        <div class="content-card h-100">
+                            <div class="content-card-header">
+                                <div class="content-card-title">Team Spending Trends</div>
+                            </div>
+                            <div class="content-card-body">
+                                <canvas id="spendingTrendChart" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="content-card h-100">
+                            <div class="content-card-header">
+                                <div class="content-card-title">Category Distribution</div>
+                            </div>
+                            <div class="content-card-body">
+                                <canvas id="categoryDistributionChart" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal for Detailed Expense Review -->
+    <div class="modal fade" id="expenseDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">Review Expense Claim</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-uppercase text-muted small fw-bold mb-3">Claim Details</h6>
+                            <table class="table table-sm table-borderless">
+                                <tr><td class="text-muted" width="120">Employee:</td> <td id="detail-employee" class="fw-semibold">--</td></tr>
+                                <tr><td class="text-muted">Date:</td> <td id="detail-date">--</td></tr>
+                                <tr><td class="text-muted">Category:</td> <td><span id="detail-category" class="badge bg-light text-dark">--</span></td></tr>
+                                <tr><td class="text-muted">Original:</td> <td id="detail-original-amount" class="fw-bold">--</td></tr>
+                                <tr><td class="text-muted">Converted:</td> <td id="detail-converted-amount" class="text-primary fw-bold">--</td></tr>
+                            </table>
+                            
+                            <h6 class="text-uppercase text-muted small fw-bold mb-2 mt-4">Description</h6>
+                            <p id="detail-description" class="p-3 bg-light border rounded small">--</p>
+                            
+                            <div class="mt-4">
+                                <label class="form-label small fw-bold text-muted">Approval/Rejection Comments</label>
+                                <textarea id="approval-comment" class="form-control" rows="3" placeholder="Explain your decision (required for rejection)..."></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6 border-start">
+                            <h6 class="text-uppercase text-muted small fw-bold mb-3">Receipt Preview</h6>
+                            <div id="detail-receipt-container" class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 350px; overflow: hidden; border: 1px dashed var(--gray-300);">
+                                <img id="detail-receipt-img" src="" alt="Receipt" style="max-width: 100%; max-height: 100%; object-fit: contain; cursor: zoom-in;" onclick="window.open(this.src, '_blank')">
+                                <div id="no-receipt-placeholder" class="text-muted small">No receipt image available</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button class="btn btn-outline-secondary me-auto" id="btn-escalate">Escalate to Finance</button>
+                    <button class="btn btn-danger px-4" id="btn-reject-claim">Reject</button>
+                    <button class="btn btn-success px-4" id="btn-approve-claim">Approve</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Team History -->
+    <div class="modal fade" id="teamHistoryModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="historyModalLabel">Expense History</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body history-drilldown" id="history-modal-body">
+                    <!-- History rows -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='js/approver.js') }}"></script>
+</body>
+</html>

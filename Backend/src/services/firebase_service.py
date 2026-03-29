@@ -1,4 +1,6 @@
 import os
+from datetime import datetime, timedelta
+import collections
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
 from pathlib import Path
@@ -128,6 +130,18 @@ class FirebaseService:
             print(f"Error updating company: {e}")
             raise e
 
+    def get_company_workflow(self, company_id):
+        """Retrieves the approval workflow for a specific company."""
+        try:
+            workflow_ref = self.db.collection('workflows').document(company_id)
+            doc = workflow_ref.get()
+            if doc.exists:
+                return doc.to_dict()
+            return {'steps': []}
+        except Exception as e:
+            print(f"Error fetching company workflow: {e}")
+            return {'steps': []}
+
     def get_company_employees(self, company_id):
         try:
             if not company_id:
@@ -155,6 +169,16 @@ class FirebaseService:
             ref.set(workflow_data, merge=True)
         except Exception as e:
             print(f"Error saving workflow: {e}")
+            raise e
+
+    def assign_finance_to_manager(self, manager_uid, finance_uid):
+        """Maps a Finance user to a Manager (Many-to-One)."""
+        try:
+            self.db.collection('users').document(manager_uid).update({
+                'assignedFinanceId': finance_uid
+            })
+        except Exception as e:
+            print(f"Error assigning finance to manager: {e}")
             raise e
 
     def get_approval_workflow(self, company_id):
@@ -212,6 +236,307 @@ class FirebaseService:
         except Exception as e:
             print(f"Error overriding expense: {e}")
             raise e
+
+    def submit_approval(self, expense_id, approver_uid, action, company_id, comment=None):
+        """Processes a standard approval action and triggers the hybrid evaluation engine."""
+        try:
+            expense_ref = self.db.collection('expenses').document(expense_id)
+            
+            # Record the approval action with optional comment
+            update_data = {
+                f"approvals.{approver_uid}": {
+                    'action': action,
+                    'comment': comment,
+                    'timestamp': firestore.SERVER_TIMESTAMP
+                },
+                'lastUpdatedAt': firestore.SERVER_TIMESTAMP
+            }
+            
+            # If it's a rejection, we might want to store the rejection comment specifically
+            if action == 'rejected':
+                update_data['rejectionComment'] = comment
+                update_data['status'] = 'rejected'
+            elif action == 'escalated':
+                update_data['status'] = 'pending_finance' # Default escalation to Finance
+                update_data['escalatedBy'] = approver_uid
+            
+            expense_ref.update(update_data)
+            
+            return self.evaluate_expense_status(expense_id, company_id)
+            
+        except Exception as e:
+            print(f"Error submitting approval: {e}")
+            raise e
+
+    def evaluate_expense_status(self, expense_id, company_id):
+        """
+        Evaluates the current status based on Sequential + Conditional Logic:
+        1. Manager Approval (Step 1)
+        2. Finance Approval (Step 2 - ONLY if assigned)
+        """
+        try:
+            expense_ref = self.db.collection('expenses').document(expense_id)
+            expense = expense_ref.get().to_dict()
+            if not expense: return
+            
+            submitter_uid = expense.get('submittedBy')
+            submitter_data = self.get_user_data(submitter_uid)
+            manager_uid = submitter_data.get('managerId')
+            
+            # Get the manager's assigned finance person
+            manager_data = self.get_user_data(manager_uid) if manager_uid else {}
+            assigned_finance_uid = manager_data.get('assignedFinanceId')
+
+            workflow = self.get_approval_workflow(company_id)
+            approvals = expense.get('approvals', {}) # {uid: action}
+            
+            # Check rejection first
+            if 'rejected' in approvals.values():
+                expense_ref.update({'status': 'rejected'})
+                return 'rejected'
+
+            # 1. Check Manager Approval
+            manager_approved = manager_uid and approvals.get(manager_uid) == 'approved'
+            
+            if manager_approved:
+                # If manager approved, we move to the next step
+                # Is there a Finance step defined in workflow?
+                has_finance_step = any(s.get('role') == 'finance' for s in workflow.get('steps', []))
+                
+                if not has_finance_step or not assigned_finance_uid:
+                    # Skip Finance if not in workflow OR not assigned to this manager
+                    expense_ref.update({'status': 'approved', 'finalizedAt': firestore.SERVER_TIMESTAMP})
+                    return 'approved'
+                else:
+                    # Waiting for Finance
+                    if approvals.get(assigned_finance_uid) == 'approved':
+                        expense_ref.update({'status': 'approved', 'finalizedAt': firestore.SERVER_TIMESTAMP})
+                        return 'approved'
+                    else:
+                        expense_ref.update({'status': 'pending_finance'})
+                        return 'pending_finance'
+            
+            return 'pending'
+        except Exception as e:
+            print(f"Error evaluating expense status: {e}")
+            return 'error'
+
+    def get_pending_approvals(self, uid, role):
+        """Gets expenses waiting for action from a specific user based on their role."""
+        try:
+            user_data = self.get_user_data(uid)
+            company_id = user_data.get('companyId')
+            
+            if role == 'manager':
+                # Direct reports' pending expenses specifically waiting for Manager approval
+                docs = self.db.collection('expenses') \
+                    .where('companyId', '==', company_id) \
+                    .where('status', '==', 'pending_manager') \
+                    .stream()
+                
+                # Filter locally for managerId match
+                results = []
+                for doc in docs:
+                    exp = doc.to_dict()
+                    # Skip if manager already acted (safety check)
+                    if uid in exp.get('approvals', {}): continue
+                    
+                    submitter = self.get_user_data(exp.get('submittedBy'))
+                    if submitter.get('managerId') == uid:
+                        exp['id'] = doc.id
+                        results.append(exp)
+                return results
+
+            elif role == 'finance':
+                # Expenses approved by manager but waiting for this finance user
+                docs = self.db.collection('expenses') \
+                    .where('companyId', '==', company_id) \
+                    .where('status', '==', 'pending_finance') \
+                    .stream()
+                
+                results = []
+                for doc in docs:
+                    exp = doc.to_dict()
+                    submitter = self.get_user_data(exp.get('submittedBy'))
+                    mgr_id = submitter.get('managerId')
+                    mgr_data = self.get_user_data(mgr_id) if mgr_id else {}
+                    
+                    if mgr_data.get('assignedFinanceId') == uid:
+                        exp['id'] = doc.id
+                        results.append(exp)
+                return results
+                
+            return []
+        except Exception as e:
+            print(f"Error fetching pending approvals: {e}")
+            return []
+
+    def get_employee_expenses(self, uid):
+        """Gets all expenses submitted by a specific user."""
+        try:
+            # Removed order_by to avoid composite index requirement
+            docs = self.db.collection('expenses').where('submittedBy', '==', uid).stream()
+            expenses = []
+            for doc in docs:
+                data = doc.to_dict()
+                data['id'] = doc.id
+                if 'createdAt' in data and data['createdAt']:
+                    data['createdAt'] = str(data['createdAt'])
+                expenses.append(data)
+            
+            # Sort in memory instead
+            expenses.sort(key=lambda x: x.get('createdAt', ''), reverse=True)
+            return expenses
+        except Exception as e:
+            print(f"Error fetching employee expenses: {e}")
+            return []
+
+    def get_employee_stats(self, uid):
+        """Calculates summary stats for a specific user."""
+        try:
+            docs = self.db.collection('expenses').where('submittedBy', '==', uid).stream()
+            total_reimbursed = 0
+            pending_amount = 0
+            total_claims = 0
+            
+            for doc in docs:
+                data = doc.to_dict()
+                total_claims += 1
+                amount = float(data.get('amount', 0))
+                status = data.get('status', 'pending_manager')
+                
+                if status == 'approved':
+                    total_reimbursed += amount
+                elif status in ['pending', 'pending_manager', 'pending_finance']:
+                    pending_amount += amount
+                    
+            return {
+                'totalReimbursed': total_reimbursed,
+                'pendingAmount': pending_amount,
+                'totalClaims': total_claims
+            }
+        except Exception as e:
+            print(f"Error calculating employee stats: {e}")
+            return {'totalReimbursed': 0, 'pendingAmount': 0, 'totalClaims': 0}
+
+    def create_expense(self, expense_data):
+        """Creates a new expense record with currency normalization."""
+        try:
+            expense_data['createdAt'] = firestore.SERVER_TIMESTAMP
+            expense_data['status'] = 'pending_manager'
+            expense_data['approvals'] = {}
+            
+            # Currency Logic (Default is INR for this example)
+            # In a real app, this would use an exchange rate service
+            if 'originalCurrency' in expense_data and 'originalAmount' in expense_data:
+                rate = 1.0
+                if expense_data['originalCurrency'] == 'EUR': rate = 90.0
+                elif expense_data['originalCurrency'] == 'USD': rate = 83.0
+                elif expense_data['originalCurrency'] == 'GBP': rate = 105.0
+                
+                expense_data['convertedAmount'] = float(expense_data['originalAmount']) * rate
+                expense_data['convertedCurrency'] = 'INR'
+                # Ensure 'amount' is set to converted amount for legacy compatibility
+                expense_data['amount'] = expense_data['convertedAmount']
+
+            doc_ref = self.db.collection('expenses').add(expense_data)
+            return doc_ref[1].id
+        except Exception as e:
+            print(f"Error creating expense: {e}")
+            raise e
+
+    def get_manager_team(self, manager_uid):
+        """Fetches all users where managerId matches the given manager_uid."""
+        try:
+            docs = self.db.collection('users').where('managerId', '==', manager_uid).stream()
+            team = []
+            for doc in docs:
+                data = doc.to_dict()
+                data['uid'] = doc.id
+                team.append(data)
+            return team
+        except Exception as e:
+            print(f"Error fetching manager team: {e}")
+            return []
+
+    def get_team_expenses(self, manager_uid):
+        """Fetches all expenses submitted by the manager's direct reports."""
+        try:
+            # 1. Get team UIDs
+            team = self.get_manager_team(manager_uid)
+            uids = [member['uid'] for member in team]
+            
+            if not uids:
+                return []
+
+            # 2. Get expenses for these UIDs
+            expenses = []
+            # Firestore 'in' is limited to 30 values.
+            docs = self.db.collection('expenses').where('submittedBy', 'in', uids[:30]).stream()
+            for doc in docs:
+                data = doc.to_dict()
+                data['id'] = doc.id
+                if 'createdAt' in data and data['createdAt']:
+                    data['createdAt'] = str(data['createdAt'])
+                expenses.append(data)
+            
+            expenses.sort(key=lambda x: x.get('createdAt', ''), reverse=True)
+            return expenses
+        except Exception as e:
+            print(f"Error fetching team expenses: {e}")
+            return []
+    def get_team_analytics(self, manager_uid):
+        """Aggregates expenses for the manager's team for charts."""
+        try:
+            expenses = self.get_team_expenses(manager_uid)
+            
+            # 1. Spending Trends (Last 6 Months)
+            monthly_data = collections.defaultdict(float)
+            # Initialize last 6 months with 0
+            now = datetime.now()
+            months_labels = []
+            for i in range(5, -1, -1):
+                m_date = now - timedelta(days=i*30)
+                m_label = m_date.strftime('%b')
+                months_labels.append(m_label)
+                monthly_data[m_label] = 0.0
+
+            # 2. Category Distribution
+            category_data = collections.defaultdict(float)
+
+            for exp in expenses:
+                # Use convertedAmount for statistics
+                amount = float(exp.get('convertedAmount', exp.get('amount', 0)))
+                status = exp.get('status', '')
+                cat = exp.get('category', 'Other')
+                
+                # Distribution (Always show current categories)
+                category_data[cat] += amount
+                
+                # Trends (Exclude rejected for trends)
+                if status != 'rejected':
+                    try:
+                        # createdAt is a string ISO date from get_team_expenses mapping
+                        dt = datetime.fromisoformat(exp['createdAt'].replace('Z', '+00:00'))
+                        m_label = dt.strftime('%b')
+                        if m_label in monthly_data:
+                            monthly_data[m_label] += amount
+                    except:
+                        continue
+
+            return {
+                'trends': {
+                    'labels': months_labels,
+                    'data': [round(monthly_data[m], 2) for m in months_labels]
+                },
+                'distribution': {
+                    'labels': list(category_data.keys()),
+                    'data': [round(v, 2) for v in category_data.values()]
+                }
+            }
+        except Exception as e:
+            print(f"Error generating team analytics: {e}")
+            return {'trends': {'labels': [], 'data': []}, 'distribution': {'labels': [], 'data': []}}
 
     # ══════════════════════════════════════════════════════════════
     # SIGNUP / REGISTRATION
