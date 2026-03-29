@@ -14,7 +14,7 @@ class AIService:
             print("WARNING: GEMINI_API_KEY not found in environment.")
         genai.configure(api_key=api_key)
 
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        self.model = genai.GenerativeModel('gemini-2.5-flash')
 
     def extract_expense_details(self, image_data):
         """

@@ -64,13 +64,13 @@ window.addEventListener('DOMContentLoaded', async () => {
  * Updated with user's project configuration.
  */
 const firebaseConfig = {
-    apiKey: "AIzaSyADHyfq0pieUY6iiGvort757xRef5Fe9vo",
-    authDomain: "reimbursement-system-12098.firebaseapp.com",
-    projectId: "reimbursement-system-12098",
-    storageBucket: "reimbursement-system-12098.firebasestorage.app",
-    messagingSenderId: "261341593920",
-    appId: "1:261341593920:web:9cfe905c77d6d7c0defaa5",
-    measurementId: "G-2HW81E64YT"
+    apiKey: "YOUR_FIREBASE_API_KEY",
+    authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID",
+    measurementId: "YOUR_MEASUREMENT_ID"
 };
 
 // Import the functions you need from the SDKs you need
