@@ -36,10 +36,15 @@ def api_login():
         session['user'] = uid
         session['role'] = role
         
+        def get_dashboard_role_url(role):
+            if role in ['manager', 'finance']:
+                return url_for('dashboard.approver_dashboard')
+            return url_for(f'dashboard.{role}_dashboard')
+            
         return jsonify({
             'status': 'success',
             'role': role,
-            'redirect': url_for(f'dashboard.{role}_dashboard')
+            'redirect': get_dashboard_role_url(role)
         })
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 401
@@ -63,10 +68,15 @@ def api_signup():
         session['user'] = uid
         session['role'] = role
         
+        def get_dashboard_role_url(role):
+            if role in ['manager', 'finance']:
+                return url_for('dashboard.approver_dashboard')
+            return url_for(f'dashboard.{role}_dashboard')
+
         return jsonify({
             'status': 'success', 
             'role': role,
-            'redirect': url_for(f'dashboard.{role}_dashboard')
+            'redirect': get_dashboard_role_url(role)
         })
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 400

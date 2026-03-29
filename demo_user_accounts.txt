@@ -1,0 +1,44 @@
+ROLE: Manager | NAME: Manager 1 | EMAIL: manager1@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 1 (M1) | EMAIL: emp1.m1@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 2 (M1) | EMAIL: emp2.m1@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 3 (M1) | EMAIL: emp3.m1@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 4 (M1) | EMAIL: emp4.m1@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 5 (M1) | EMAIL: emp5.m1@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 6 (M1) | EMAIL: emp6.m1@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 7 (M1) | EMAIL: emp7.m1@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 8 (M1) | EMAIL: emp8.m1@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 9 (M1) | EMAIL: emp9.m1@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 10 (M1) | EMAIL: emp10.m1@claroz.com | PASS: User@123
+ROLE: Manager | NAME: Manager 2 | EMAIL: manager2@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 1 (M2) | EMAIL: emp1.m2@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 2 (M2) | EMAIL: emp2.m2@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 3 (M2) | EMAIL: emp3.m2@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 4 (M2) | EMAIL: emp4.m2@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 5 (M2) | EMAIL: emp5.m2@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 6 (M2) | EMAIL: emp6.m2@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 7 (M2) | EMAIL: emp7.m2@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 8 (M2) | EMAIL: emp8.m2@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 9 (M2) | EMAIL: emp9.m2@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 10 (M2) | EMAIL: emp10.m2@claroz.com | PASS: User@123
+ROLE: Manager | NAME: Manager 3 | EMAIL: manager3@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 1 (M3) | EMAIL: emp1.m3@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 2 (M3) | EMAIL: emp2.m3@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 3 (M3) | EMAIL: emp3.m3@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 4 (M3) | EMAIL: emp4.m3@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 5 (M3) | EMAIL: emp5.m3@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 6 (M3) | EMAIL: emp6.m3@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 7 (M3) | EMAIL: emp7.m3@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 8 (M3) | EMAIL: emp8.m3@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 9 (M3) | EMAIL: emp9.m3@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 10 (M3) | EMAIL: emp10.m3@claroz.com | PASS: User@123
+ROLE: Manager | NAME: Manager 4 | EMAIL: manager4@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 1 (M4) | EMAIL: emp1.m4@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 2 (M4) | EMAIL: emp2.m4@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 3 (M4) | EMAIL: emp3.m4@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 4 (M4) | EMAIL: emp4.m4@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 5 (M4) | EMAIL: emp5.m4@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 6 (M4) | EMAIL: emp6.m4@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 7 (M4) | EMAIL: emp7.m4@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 8 (M4) | EMAIL: emp8.m4@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 9 (M4) | EMAIL: emp9.m4@claroz.com | PASS: User@123
+ROLE: Employee | NAME: Emp 10 (M4) | EMAIL: emp10.m4@claroz.com | PASS: User@123

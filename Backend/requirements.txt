@@ -4,3 +4,4 @@ python-dotenv
 pytest
 flask-cors
 requests
+google-generativeai

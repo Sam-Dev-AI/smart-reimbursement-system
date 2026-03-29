@@ -64,7 +64,7 @@ window.addEventListener('DOMContentLoaded', async () => {
  * Updated with user's project configuration.
  */
 const firebaseConfig = {
-    apiKey: "AIzaSyADHyfq0pieUY6iiGvort757xRef5Fe9vo",
+    apiKey: "Your_API_Key",
     authDomain: "reimbursement-system-12098.firebaseapp.com",
     projectId: "reimbursement-system-12098",
     storageBucket: "reimbursement-system-12098.firebasestorage.app",
