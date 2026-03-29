@@ -18,19 +18,42 @@ toLogin.addEventListener('click', (e) => {
 
 // Load Countries dynamically on boot
 window.addEventListener('DOMContentLoaded', async () => {
+    // 1. Check if system is initialized (First user setup)
+    try {
+        const setupRes = await fetch('/api/check-setup');
+        const setupData = await setupRes.json();
+        
+        if (setupData.initialized) {
+            // Disable the "Sign Up" toggle link
+            if (toSignup) {
+                const parent = toSignup.parentElement;
+                parent.innerHTML = '<span class="text-muted" style="font-size: 0.9rem;">Registration is closed by administrator.</span>';
+            }
+            // Remove the back face of the card (signup form) for extra security
+            const backFace = document.querySelector('.auth-face.auth-back');
+            if (backFace) {
+                backFace.style.display = 'none';
+            }
+        }
+    } catch (e) {
+        console.error("Error checking setup status:", e);
+    }
+
+    // 2. Load countries if setup is NOT yet done (or just load anyway for later usage)
     try {
         const response = await fetch('/api/countries');
         const countries = await response.json();
         
-        countrySelect.innerHTML = '<option value="">Select Country...</option>';
-        countries.forEach(country => {
-            const option = document.createElement('option');
-            option.value = country.name;
-            // Store currency info in dataset for easy retrieval
-            option.dataset.currency = country.currency_code;
-            option.textContent = `${country.name} (${country.currency_code})`;
-            countrySelect.appendChild(option);
-        });
+        if (countrySelect) {
+            countrySelect.innerHTML = '<option value="">Select Country...</option>';
+            countries.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country.name;
+                option.dataset.currency = country.currency_code;
+                option.textContent = `${country.name} (${country.currency_code})`;
+                countrySelect.appendChild(option);
+            });
+        }
     } catch (e) {
         console.error("Error loading countries:", e);
     }
@@ -41,13 +64,13 @@ window.addEventListener('DOMContentLoaded', async () => {
  * Updated with user's project configuration.
  */
 const firebaseConfig = {
-    apiKey: "Your_API_Key",
-    authDomain: "Your_Auth_Domain",
-    projectId: "Your_Project_ID",
-    storageBucket: "Your_Storage_Bucket",
-    messagingSenderId: "Your_Messaging_Sender_ID",
-    appId: "Your_App_ID",
-    measurementId: "Your_Measurement_ID"
+    apiKey: "AIzaSyADHyfq0pieUY6iiGvort757xRef5Fe9vo",
+    authDomain: "reimbursement-system-12098.firebaseapp.com",
+    projectId: "reimbursement-system-12098",
+    storageBucket: "reimbursement-system-12098.firebasestorage.app",
+    messagingSenderId: "261341593920",
+    appId: "1:261341593920:web:9cfe905c77d6d7c0defaa5",
+    measurementId: "G-2HW81E64YT"
 };
 
 // Import the functions you need from the SDKs you need

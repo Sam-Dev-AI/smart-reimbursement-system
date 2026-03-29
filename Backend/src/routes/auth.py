@@ -16,6 +16,12 @@ def get_countries():
     countries = currency_service.get_countries_and_currencies()
     return jsonify(countries)
 
+@auth_bp.route('/api/check-setup', methods=['GET'])
+def check_setup():
+    """Checks if the system has been initialized with the first admin."""
+    is_initialized = firebase_service.is_system_initialized()
+    return jsonify({'initialized': is_initialized})
+
 @auth_bp.route('/api/login', methods=['POST'])
 def api_login():
     """API endpoint to receive the Firebase ID token after frontend login."""
@@ -33,7 +39,7 @@ def api_login():
         return jsonify({
             'status': 'success',
             'role': role,
-            'redirect': url_for(f'auth.{role}_dashboard')
+            'redirect': url_for(f'dashboard.{role}_dashboard')
         })
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 401
@@ -41,15 +47,17 @@ def api_login():
 @auth_bp.route('/api/signup', methods=['POST'])
 def api_signup():
     """API endpoint to handle initial user signup and company creation."""
+    # Strict rule: Only the first user can use this route publicly
+    if firebase_service.is_system_initialized():
+        return jsonify({'status': 'error', 'message': 'Registration is closed. Please contact your administrator.'}), 403
+
     data = request.json
     id_token = data.get('idToken')
     
     try:
-        # Verify the Firebase User
         decoded_token = firebase_auth.verify_id_token(id_token)
         uid = decoded_token['uid']
         
-        # Register user with role and company initialization logic
         role = firebase_service.create_user_with_role(uid, data)
         
         session['user'] = uid
@@ -58,20 +66,7 @@ def api_signup():
         return jsonify({
             'status': 'success', 
             'role': role,
-            'redirect': url_for(f'auth.{role}_dashboard')
+            'redirect': url_for(f'dashboard.{role}_dashboard')
         })
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 400
-
-# Dashboard routes for redirection
-@auth_bp.route('/admin/dashboard')
-def admin_dashboard():
-    return render_template('dashboard.html', role='Admin')
-
-@auth_bp.route('/manager/dashboard')
-def manager_dashboard():
-    return render_template('dashboard.html', role='Manager')
-
-@auth_bp.route('/employee/dashboard')
-def employee_dashboard():
-    return render_template('dashboard.html', role='Employee')

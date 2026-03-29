@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, redirect, url_for, session
+from flask import Flask, redirect, url_for, session
 from flask_cors import CORS
 from pathlib import Path
 
@@ -21,27 +21,16 @@ def create_app():
 
     # Register Blueprints
     from .routes.auth import auth_bp
+    from .routes.dashboard import dashboard_bp
     app.register_blueprint(auth_bp)
+    app.register_blueprint(dashboard_bp)
 
     # Base route for initial redirection
     @app.route('/')
     def index():
         if 'user' in session:
             role = session.get('role', 'employee')
-            return redirect(url_for(f'auth.{role}_dashboard'))
+            return redirect(url_for(f'dashboard.{role}_dashboard'))
         return redirect(url_for('auth.login'))
-
-    # Root Dashboard Routes for redirection demonstration
-    @app.route('/admin/dashboard')
-    def admin_dashboard():
-        return render_template('dashboard.html', role='Admin')
-
-    @app.route('/manager/dashboard')
-    def manager_dashboard():
-        return render_template('dashboard.html', role='Manager')
-
-    @app.route('/employee/dashboard')
-    def employee_dashboard():
-        return render_template('dashboard.html', role='Employee')
 
     return app
