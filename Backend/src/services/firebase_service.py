@@ -24,6 +24,22 @@ class FirebaseService:
             print(f"Error initializing Firebase Admin SDK: {e}")
             raise e
 
+    def _serialize_expense_timestamps(self, data):
+        """Standardized conversion of all Firestore timestamps to strings for JSON responses."""
+        if not data: return data
+        ts_fields = ['createdAt', 'updatedAt', 'finalizedAt', 'overriddenAt', 'lastUpdatedAt']
+        for field in ts_fields:
+            if field in data and data[field]:
+                data[field] = str(data[field])
+        
+        # Handle the nested approvals map timestamps if they exist
+        if 'approvals' in data and isinstance(data['approvals'], dict):
+            for uid, approval in data['approvals'].items():
+                if isinstance(approval, dict) and 'timestamp' in approval and approval['timestamp']:
+                    approval['timestamp'] = str(approval['timestamp'])
+        
+        return data
+
     # ══════════════════════════════════════════════════════════════
     # SYSTEM INITIALIZATION
     # ══════════════════════════════════════════════════════════════
@@ -154,6 +170,9 @@ class FirebaseService:
                 if 'createdAt' in data and data['createdAt']:
                     data['createdAt'] = str(data['createdAt'])
                 employees.append(data)
+            
+            # Memory sort
+            employees.sort(key=lambda x: str(x.get('createdAt', '')), reverse=True)
             return employees
         except Exception as e:
             print(f"Error fetching employees: {e}")
@@ -212,14 +231,17 @@ class FirebaseService:
         try:
             if not company_id:
                 return []
-            docs = self.db.collection('expenses').where('companyId', '==', company_id).order_by('createdAt', direction=firestore.Query.DESCENDING).stream()
+            # Removed order_by to avoid composite index requirement
+            docs = self.db.collection('expenses').where('companyId', '==', company_id).stream()
             expenses = []
             for doc in docs:
                 data = doc.to_dict()
                 data['id'] = doc.id
-                if 'createdAt' in data and data['createdAt']:
-                    data['createdAt'] = str(data['createdAt'])
+                data = self._serialize_expense_timestamps(data)
                 expenses.append(data)
+            
+            # Sort in memory
+            expenses.sort(key=lambda x: str(x.get('createdAt', '')), reverse=True)
             return expenses
         except Exception as e:
             print(f"Error fetching expenses: {e}")
@@ -249,7 +271,7 @@ class FirebaseService:
                     'comment': comment,
                     'timestamp': firestore.SERVER_TIMESTAMP
                 },
-                'lastUpdatedAt': firestore.SERVER_TIMESTAMP
+                'updatedAt': firestore.SERVER_TIMESTAMP
             }
             
             # If it's a rejection, we might want to store the rejection comment specifically
@@ -289,14 +311,17 @@ class FirebaseService:
 
             # Fetch workflow config (now expects a financeThreshold property)
             workflow = self.get_approval_workflow(company_id)
-            finance_threshold = workflow.get('financeThreshold', 0)
+            finance_threshold = float(workflow.get('financeThreshold', 0))
             
-            approvals = expense.get('approvals', {}) # {uid: {'action':'approved', ...}}
+            # Fallback: Check if there's a global auto-approver/finance head in the workflow settings
+            global_finance_uid = workflow.get('advancedRules', {}).get('autoApprover')
+            final_finance_uid = assigned_finance_uid or global_finance_uid
             
             # Extract plain action strings for easy checking
             # Handle both string values (legacy) and dict values (new format)
             actions = {}
-            for uid, val in approvals.items():
+            approvals_data = expense.get('approvals', {})
+            for uid, val in approvals_data.items():
                 if isinstance(val, dict):
                     actions[uid] = val.get('action')
                 else:
@@ -313,17 +338,17 @@ class FirebaseService:
             if manager_approved:
                 amount = float(expense.get('amount', 0))
                 
-                # Rule: Only route to finance if amount > threshold AND assigned finance exists
-                if amount > finance_threshold and assigned_finance_uid:
+                # Rule: Only route to finance if amount > threshold AND a finance authority exists
+                if amount > finance_threshold and final_finance_uid:
                     # Waiting for Finance
-                    if actions.get(assigned_finance_uid) == 'approved':
+                    if actions.get(final_finance_uid) == 'approved':
                         expense_ref.update({'status': 'approved', 'finalizedAt': firestore.SERVER_TIMESTAMP})
                         return 'approved'
                     else:
                         expense_ref.update({'status': 'pending_finance'})
                         return 'pending_finance'
                 else:
-                    # Under threshold (or no finance assigned) - instantly approve!
+                    # Under threshold (or no finance assigned by admin) - instantly approve!
                     expense_ref.update({'status': 'approved', 'finalizedAt': firestore.SERVER_TIMESTAMP})
                     return 'approved'
             
@@ -355,6 +380,7 @@ class FirebaseService:
                     submitter = self.get_user_data(exp.get('submittedBy'))
                     if submitter.get('managerId') == uid:
                         exp['id'] = doc.id
+                        exp = self._serialize_expense_timestamps(exp)
                         results.append(exp)
                 return results
 
@@ -365,6 +391,10 @@ class FirebaseService:
                     .where('status', '==', 'pending_finance') \
                     .stream()
                 
+                # Get the global workflow to check for secondary authority
+                workflow = self.get_approval_workflow(company_id)
+                global_finance_uid = workflow.get('advancedRules', {}).get('autoApprover')
+                
                 results = []
                 for doc in docs:
                     exp = doc.to_dict()
@@ -372,8 +402,12 @@ class FirebaseService:
                     mgr_id = submitter.get('managerId')
                     mgr_data = self.get_user_data(mgr_id) if mgr_id else {}
                     
-                    if mgr_data.get('assignedFinanceId') == uid:
+                    # Direct assignment OR Global Finance assignment
+                    mgr_assigned_id = mgr_data.get('assignedFinanceId')
+                    
+                    if (mgr_assigned_id == uid) or (not mgr_assigned_id and global_finance_uid == uid):
                         exp['id'] = doc.id
+                        exp = self._serialize_expense_timestamps(exp)
                         results.append(exp)
                 return results
                 
@@ -391,8 +425,7 @@ class FirebaseService:
             for doc in docs:
                 data = doc.to_dict()
                 data['id'] = doc.id
-                if 'createdAt' in data and data['createdAt']:
-                    data['createdAt'] = str(data['createdAt'])
+                data = self._serialize_expense_timestamps(data)
                 expenses.append(data)
             
             # Sort in memory instead
@@ -506,8 +539,7 @@ class FirebaseService:
             for doc in docs:
                 data = doc.to_dict()
                 data['id'] = doc.id
-                if 'createdAt' in data and data['createdAt']:
-                    data['createdAt'] = str(data['createdAt'])
+                data = self._serialize_expense_timestamps(data)
                 expenses.append(data)
             
             expenses.sort(key=lambda x: x.get('createdAt', ''), reverse=True)

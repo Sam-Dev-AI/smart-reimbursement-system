@@ -96,6 +96,7 @@ async function loadDashboard() {
             currentUser = data.user;
             renderUserProfile();
             loadPendingApprovals();
+            loadRecentActivity();
         }
     } catch (e) {
         console.error('Error loading dashboard:', e);
@@ -118,10 +119,85 @@ async function loadPendingApprovals() {
             pendingExpenses = data.expenses;
             if(document.getElementById('stat-pending')) document.getElementById('stat-pending').textContent = pendingExpenses.length;
             renderMiniList();
+            
+            // Also refresh overall activity if we just did an action
+            loadRecentActivity();
         }
     } catch (e) {
         console.error('Error loading approvals:', e);
     }
+}
+
+async function loadRecentActivity() {
+    try {
+        const res = await fetch('/api/manager/team/expenses');
+        const data = await res.json();
+        if (data.status === 'success') {
+            teamExpenses = data.expenses;
+            renderRecentDecisions();
+            updateStats();
+        }
+    } catch (e) {
+        console.error('Error loading activity:', e);
+    }
+}
+
+function updateStats() {
+    const approved = teamExpenses.filter(e => e.status === 'approved' || e.status === 'pending_finance');
+    const totalAmount = approved.reduce((sum, e) => sum + parseFloat(e.convertedAmount || e.amount || 0), 0);
+    
+    if(document.getElementById('stat-approved')) document.getElementById('stat-approved').textContent = approved.length;
+    if(document.getElementById('stat-approved-value')) {
+        document.getElementById('stat-approved-value').textContent = `${currentUser.companyCurrency || '$'} ${totalAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    }
+}
+
+function renderRecentDecisions() {
+    const container = document.getElementById('recent-decisions-list');
+    if (!container) return;
+
+    const decisions = teamExpenses
+        .filter(e => e.status === 'approved' || e.status === 'rejected' || e.status === 'pending_finance')
+        .sort((a, b) => new Date(b.finalizedAt || b.updatedAt || 0) - new Date(a.finalizedAt || a.updatedAt || 0))
+        .slice(0, 5);
+
+    if (decisions.length === 0) {
+        container.innerHTML = `<div class="p-4 text-center text-muted">No recent history.</div>`;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <tbody>
+                    ${decisions.map(exp => {
+                        const isApp = exp.status === 'approved' || exp.status === 'pending_finance';
+                        const badgeClass = isApp ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger';
+                        const icon = isApp ? 'check-circle' : 'x-circle';
+                        return `
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="me-2 text-${isApp ? 'success' : 'danger'}">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/>${isApp ? '<polyline points="16 12 12 16 8 12"/>' : '<line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>'}</svg>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold small">${exp.employeeName || 'Member'}</div>
+                                        <div class="text-muted" style="font-size: 10px;">${new Date(exp.finalizedAt || exp.createdAt).toLocaleDateString()}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="small fw-bold">${exp.currency || '$'} ${exp.amount}</td>
+                            <td class="text-end">
+                                <span class="badge ${badgeClass} border-0" style="font-size: 10px;">${exp.status.replace('_', ' ')}</span>
+                            </td>
+                        </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
 }
 
 function renderMiniList() {
