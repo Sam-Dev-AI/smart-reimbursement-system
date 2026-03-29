@@ -3,7 +3,7 @@
 A professional, SaaS-grade platform designed to revolutionize company expense management with an intelligent, dynamic approval engine and AI-powered receipt processing.
 
 ## 🌐 Live Demo
-Experience the system live here: **[reimbursement.claroz.in](https://reimbursement.claroz.in)**
+Experience the system live here: [![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge&logo=googlecloud&logoColor=white)](https://reimbursement-system-709398621882.us-central1.run.app/)
 
 ---
 
