@@ -43,11 +43,7 @@
             </a>
             <a href="#" class="sidebar-nav-item" data-section="workflows">
                 <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                <span>Approval Workflows</span>
-            </a>
-            <a href="#" class="sidebar-nav-item" data-section="rules">
-                <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                <span>Advanced Rules</span>
+                <span>Workflow Configuration</span>
             </a>
         </div>
 
@@ -265,89 +261,91 @@
         </div>
 
         <!-- ════════════════════════════════════════════════════
-             SECTION 4: APPROVAL WORKFLOWS
+             SECTION 4: WORKFLOW CONFIGURATION
              ════════════════════════════════════════════════════ -->
         <div class="dashboard-section" id="section-workflows">
             <div class="section-header">
-                <div><div class="section-title">Approval Workflow Configuration</div><div class="section-subtitle">Define the sequence of approvals for expense claims.</div></div>
-                <button class="btn-action btn-action-primary" id="save-workflow-btn">Save Workflow</button>
-            </div>
-
-            <div class="content-grid">
-                <div class="content-card">
-                    <div class="content-card-header"><div class="content-card-title">Approval Sequence</div>
-                        <button class="btn-action btn-action-outline btn-action-sm" id="add-step-btn">+ Add Step</button>
-                    </div>
-                    <div class="content-card-body" id="workflow-steps">
-                        <!-- Dynamically populated -->
-                    </div>
-                </div>
-
                 <div>
-                    <div class="content-card" style="margin-bottom:16px">
-                        <div class="content-card-header"><div class="content-card-title">Settings</div></div>
-                        <div class="content-card-body">
-                            <div class="toggle-container">
-                                <div class="toggle-switch active" id="toggle-manager-first" onclick="this.classList.toggle('active')"></div>
-                                <div class="toggle-label">Manager is always first approver</div>
-                            </div>
-                            <p style="font-size:11px;color:var(--gray-500);margin-top:4px">When enabled, the employee's direct manager will always be the first person to review the claim regardless of the sequence above.</p>
-                        </div>
-                    </div>
+                    <div class="section-title">Enterprise Workflow Configuration</div>
+                    <div class="section-subtitle">Define global thresholds, overrides, and advanced routing logic.</div>
+                </div>
+                <button class="btn-action btn-action-primary px-4 shadow-sm" id="save-workflow-btn">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Save Settings
+                </button>
+            </div>
 
-                    <div class="content-card">
-                        <div class="content-card-header"><div class="content-card-title">Threshold Rules</div>
-                            <button class="btn-action btn-action-outline btn-action-sm" id="add-threshold-btn">+ Add Rule</button>
-                        </div>
-                        <div class="content-card-body" id="threshold-rules">
-                            <select id="workflow-role" class="form-select">
-                                <option value="manager">Manager</option>
-                                <option value="finance">Finance</option>
-                                <option value="admin">Admin Override</option>
-                            </select>
-                            <div class="rule-card">
-                                <div class="rule-card-header">
-                                    <div class="rule-card-title">Default Rule</div>
+            <div class="row">
+                <!-- Left Column: Primary Rules -->
+                <div class="col-lg-7 mb-4">
+                    <div class="content-card h-100 border-0 shadow-sm rounded-3">
+                        <div class="content-card-header bg-light border-bottom border-light"><div class="content-card-title mb-0 fw-bold text-dark">Manager &rarr; Finance Escalation Threshold</div></div>
+                        <div class="content-card-body p-4">
+                            <p class="text-secondary small mb-4">
+                                Optimize your workflow by auto-finalizing smaller expenses. 
+                                <br>
+                                Any expense <strong>below or equal</strong> to this threshold will be <strong>instantly approved</strong> once the employee's direct manager approves it. 
+                                Expenses <strong>above</strong> this amount will automatically escalate to the manager's assigned Finance counterpart.
+                            </p>
+                            
+                            <div class="bg-white border rounded p-3 mb-3 d-flex flex-column gap-2" style="max-width: 400px; border-color: #e5e7eb;">
+                                <label class="form-label fw-bold mb-0 text-dark">Threshold Amount</label>
+                                <div class="input-group input-group-lg shadow-sm">
+                                    <span class="input-group-text bg-light text-muted fw-bold border-right-0">₹</span>
+                                    <input type="number" id="finance-threshold-input" class="form-control fw-bold text-dark border-left-0" placeholder="e.g. 10000" min="0" required>
                                 </div>
-                                <p style="font-size:12px;color:var(--gray-500)">All expenses follow the standard approval sequence above. Add threshold rules to create different flows based on expense amounts.</p>
+                                <div class="form-text text-muted mt-2" style="font-size: 0.8rem;">
+                                    <i class="fa-solid fa-circle-info text-primary"></i> Set to <strong>₹0</strong> to force all expenses to escalate to Finance.
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- ════════════════════════════════════════════════════
-             SECTION 5: ADVANCED RULES
-             ════════════════════════════════════════════════════ -->
-        <div class="dashboard-section" id="section-rules">
-            <div class="section-header">
-                <div><div class="section-title">Advanced Approval Rules</div><div class="section-subtitle">Configure percentage-based and auto-approval logic.</div></div>
-                <button class="btn-action btn-action-primary" id="save-rules-btn">Save Rules</button>
-            </div>
-            <div class="content-grid">
-                <div class="content-card">
-                    <div class="content-card-header"><div class="content-card-title">Percentage-Based Approval</div></div>
-                    <div class="content-card-body">
-                        <div class="form-group">
-                            <label>Minimum Approval Percentage Required (%)</label>
-                            <input type="number" id="rule-percentage" value="100" min="1" max="100" placeholder="e.g., 60">
+                <!-- Right Column: Secondary Rules -->
+                <div class="col-lg-5 mb-4 d-flex flex-column gap-4">
+                    <!-- Overrides Card -->
+                    <div class="content-card border-0 shadow-sm rounded-3">
+                        <div class="content-card-header bg-light border-bottom border-light"><div class="content-card-title mb-0 fw-bold text-dark">God Mode (Universal Overrides)</div></div>
+                        <div class="content-card-body p-4">
+                            <p class="text-secondary small mb-3">Which roles are allowed to bypass the rules and instantly approve/reject any expense?</p>
+                            <div class="form-check d-flex align-items-center gap-2">
+                                <input class="form-check-input" type="checkbox" id="override-admin" checked disabled style="width: 1.25em; height: 1.25em;">
+                                <label class="form-check-label fw-medium text-dark" for="override-admin">
+                                    Administrators
+                                </label>
+                            </div>
                         </div>
-                        <p style="font-size:12px;color:var(--gray-500)">When set below 100%, an expense gets approved even if not all approvers agree. For example, 60% means 3 out of 5 approvers need to approve.</p>
                     </div>
-                </div>
-                <div class="content-card">
-                    <div class="content-card-header"><div class="content-card-title">Auto-Approval</div></div>
-                    <div class="content-card-body">
-                        <div class="form-group">
-                            <label>Auto-Approver (e.g., CFO)</label>
-                            <select id="rule-auto-approver"><option value="">-- Select User --</option></select>
+
+                    <!-- Auto-Approval Logic -->
+                    <div class="content-card flex-grow-1 border-0 shadow-sm rounded-3">
+                        <div class="content-card-header bg-light border-bottom border-light"><div class="content-card-title mb-0 fw-bold text-dark">Auto-Routing Logic</div></div>
+                        <div class="content-card-body p-4">
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-dark mb-1">Percentage-Based Approval Required</label>
+                                <div class="input-group shadow-sm">
+                                    <input type="number" id="rule-percentage" class="form-control" value="100" min="1" max="100" placeholder="e.g., 60">
+                                    <span class="input-group-text bg-light text-muted">%</span>
+                                </div>
+                                <div class="form-text text-muted mt-1" style="font-size: 0.75rem;">Set below 100% to allow quorum-based approvals.</div>
+                            </div>
+
+                            <hr class="text-muted opacity-25">
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-dark mb-1">Executive Auto-Approver</label>
+                                <select id="rule-auto-approver" class="form-select shadow-sm"><option value="">-- Select Executive --</option></select>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <label class="form-label fw-bold text-dark mb-1">Executive Auto-Approve Limit</label>
+                                <div class="input-group shadow-sm">
+                                    <span class="input-group-text bg-light text-muted">₹</span>
+                                    <input type="number" id="rule-auto-limit" class="form-control" value="0" min="0" placeholder="Max amount">
+                                </div>
+                                <div class="form-text text-muted mt-1" style="font-size: 0.75rem;">If exceeded, regular rules apply.</div>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Auto-Approve Limit (Amount)</label>
-                            <input type="number" id="rule-auto-limit" value="0" min="0" placeholder="Max amount for auto-approval">
-                        </div>
-                        <p style="font-size:12px;color:var(--gray-500)">When a specific user (like CFO) approves, the expense is auto-approved. If an amount limit is set, auto-approval only works up to that limit.</p>
                     </div>
                 </div>
             </div>
