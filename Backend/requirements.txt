@@ -5,3 +5,5 @@ pytest
 flask-cors
 requests
 google-generativeai
+gunicorn
+Pillow

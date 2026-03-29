@@ -207,7 +207,7 @@ async function loadRecentActivity() {
     try {
         const [empRes, expRes] = await Promise.all([
             fetch('/api/company/employees'),
-            fetch('/api/company/expenses')
+            fetch('/api/expenses/all')
         ]);
         
         const empData = await empRes.json();
@@ -588,17 +588,24 @@ async function loadExpenses() {
                 return;
             }
             tbody.innerHTML = expenses.map(exp => {
-                const sc = exp.status === 'approved' ? 'status-active' : exp.status === 'rejected' ? 'status-rejected' : 'status-pending';
+                const status = exp.status || 'pending';
+                let sc = 'status-pending';
+                if (status === 'approved') sc = 'status-active';
+                else if (status === 'rejected') sc = 'status-rejected';
+                else if (status.startsWith('pending_')) sc = 'status-pending';
+
+                const isActionable = status === 'pending' || status === 'pending_manager' || status === 'pending_finance';
+
                 return `<tr>
                     <td>${exp.employeeName || exp.employeeId || '--'}</td>
                     <td>${exp.description || '--'}</td>
                     <td><strong>${currentCompany.baseCurrency || ''} ${exp.amount || 0}</strong></td>
-                    <td><span class="status-badge ${sc}">${exp.status || 'pending'}</span></td>
+                    <td><span class="status-badge ${sc}">${status.replace('_', ' ')}</span></td>
                     <td>
-                        ${exp.status === 'pending' ? `
+                        ${isActionable ? `
                             <button class="btn-action btn-action-success btn-action-sm" onclick="overrideExpense('${exp.id}','approved')">Approve</button>
                             <button class="btn-action btn-action-danger btn-action-sm" onclick="overrideExpense('${exp.id}','rejected')">Reject</button>
-                        ` : '<span style="font-size:11px;color:var(--gray-500)">Resolved</span>'}
+                        ` : `<span style="font-size:11px;color:var(--gray-500)">Resolved (${status})</span>`}
                     </td>
                 </tr>`;
             }).join('');
